@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experi - Experiment Infrastructure for Startups</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a1814'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='monospace' font-weight='700' font-size='18' fill='%23c8f135'>E</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Cabinet+Grotesk:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f5f0;--surface:#ffffff;--surface2:#f0ede6;--border:#e0dbd0;--border2:#ccc8bc;
+  --ink:#1a1814;--ink2:#6b6860;--ink3:#9c9890;
+  --accent:#1a1814;--green:#2d6a4f;--green-bg:#e8f5ee;--green-border:#b7dfc8;
+  --red:#c0392b;--red-bg:#fdf0ee;--red-border:#f0b8b0;
+  --amber:#b8860b;--amber-bg:#fdf8e8;--amber-border:#e8d898;
+  --blue:#1a4a8a;--blue-bg:#eef3fb;--blue-border:#b8ccee;
+  --fd:'Cabinet Grotesk',sans-serif;--fm:'IBM Plex Mono',monospace;
+  --sidebar-bg:#1a1814;--sidebar-text:#f7f5f0;
+}
+.dark{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222222;--border:#2a2a2a;--border2:#333333;
+  --ink:#f0ede6;--ink2:#999690;--ink3:#555250;
+  --green-bg:rgba(45,106,79,.15);--green-border:rgba(45,106,79,.4);
+  --red-bg:rgba(192,57,43,.15);--red-border:rgba(192,57,43,.4);
+  --amber-bg:rgba(184,134,11,.15);--amber-border:rgba(184,134,11,.4);
+  --blue-bg:rgba(26,74,138,.15);--blue-border:rgba(26,74,138,.4);
+  --sidebar-bg:#1e2d24;--sidebar-text:#d4e8d8;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--fm);font-size:13px;line-height:1.6;min-height:100vh;transition:background .25s,color .25s}
+
+/* NOISE TEXTURE */
+body::after{content:'';position:fixed;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;pointer-events:none;z-index:999}
+
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--sidebar-bg);color:var(--sidebar-text);padding:28px 24px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:0;transition:background .25s,color .25s}
+.sidebar-logo{font-family:var(--fd);font-size:22px;font-weight:900;letter-spacing:-.02em;margin-bottom:4px;color:#fff;display:flex;align-items:center}
+.sidebar-tagline{font-size:11px;color:rgba(var(--sidebar-text-rgb),.5);margin-bottom:32px;letter-spacing:.04em}
+
+.sidebar-section{margin-bottom:28px}
+.sidebar-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(128,128,128,.7);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(128,128,128,.2)}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(128,128,128,.8)}
+.field input,.field select{background:rgba(0,0,0,.25);border:1px solid rgba(128,128,128,.25);color:inherit;font-family:var(--fm);font-size:13px;padding:9px 11px;border-radius:4px;outline:none;transition:border-color .15s;-webkit-appearance:none;width:100%}
+.field input:focus,.field select:focus{border-color:#c8f135}
+.field input::placeholder{color:#444}
+
+.slider-wrap{display:flex;align-items:center;gap:8px}
+.slider-wrap input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:rgba(128,128,128,.25);border-radius:2px;border:none;padding:0;cursor:pointer}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:#c8f135;border-radius:50%;cursor:pointer}
+.slider-out{font-size:12px;color:#c8f135;min-width:36px;text-align:right;font-weight:500}
+
+.scenario-btns{display:flex;flex-direction:column;gap:6px}
+.scenario-btn{background:rgba(0,0,0,.2);border:1px solid rgba(128,128,128,.2);color:rgba(128,128,128,.8);font-family:var(--fm);font-size:11px;padding:8px 12px;border-radius:4px;cursor:pointer;text-align:left;transition:all .15s;display:flex;justify-content:space-between;align-items:center}
+.scenario-btn:hover{border-color:#c8f135;color:#c8f135}
+.scenario-btn span{color:rgba(128,128,128,.6);font-size:10px}
+
+.mode-toggle{display:flex;gap:4px;margin-bottom:4px}
+.mode-btn{flex:1;padding:7px;background:rgba(0,0,0,.2);border:1px solid rgba(128,128,128,.2);color:rgba(128,128,128,.7);font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:all .15s}
+.mode-btn.active{background:#c8f135;color:#0a0a0a;border-color:#c8f135;font-weight:600}
+
+.run-btn{width:100%;padding:14px;background:#c8f135;color:#0a0a0a;border:none;border-radius:4px;font-family:var(--fd);font-size:14px;font-weight:800;cursor:pointer;transition:transform .1s,background .15s;letter-spacing:.01em;margin-top:8px}
+.run-btn:hover{background:#b8e020;transform:translateY(-1px)}
+.run-btn:active{transform:translateY(1px)}
+
+.history-item{background:rgba(0,0,0,.2);border:1px solid rgba(128,128,128,.2);border-radius:4px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.history-item:hover{border-color:rgba(128,128,128,.4)}
+.history-item-title{font-size:11px;color:#ccc;margin-bottom:2px}
+.history-item-sub{font-size:10px;color:rgba(128,128,128,.6)}
+
+.sidebar-footer{margin-top:auto;padding-top:20px;border-top:1px solid rgba(128,128,128,.2);font-size:10px;color:rgba(128,128,128,.6);line-height:1.7}
+.sidebar-footer a{color:rgba(128,128,128,.8);text-decoration:none}
+.sidebar-footer a:hover{color:#c8f135}
+
+/* MAIN */
+.main{padding:36px 40px;overflow-y:auto}
+
+.page-header{margin-bottom:36px;animation:fadeIn .4s ease both}
+.page-header h2{font-family:var(--fd);font-size:32px;font-weight:900;letter-spacing:-.02em;margin-bottom:6px}
+.page-header p{color:var(--ink2);font-size:13px;max-width:500px;line-height:1.7}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:28px;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 16px;font-family:var(--fm);font-size:12px;letter-spacing:.02em;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;flex-shrink:0}
+.tab.active{color:var(--ink);border-bottom-color:var(--ink)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn .3s ease both}
+
+/* METRIC CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 16px;position:relative;overflow:hidden}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.kpi-val{font-family:var(--fd);font-size:26px;font-weight:800;color:var(--ink);line-height:1;margin-bottom:3px}
+.kpi-sub{font-size:11px;color:var(--ink3)}
+.kpi-delta{font-size:11px;font-weight:600;margin-top:4px}
+.kpi-delta.good{color:var(--green)}
+.kpi-delta.bad{color:var(--red)}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px 24px;margin-bottom:16px}
+.card-title{font-family:var(--fd);font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.card-title .badge{font-family:var(--fm);font-size:10px;font-weight:400;padding:3px 8px;border-radius:10px;letter-spacing:.06em}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.badge-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.badge-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+
+/* VERDICT */
+.verdict{border-radius:8px;padding:20px 24px;margin-bottom:16px;border:1px solid}
+.verdict.v-green{background:var(--green-bg);border-color:var(--green-border)}
+.verdict.v-amber{background:var(--amber-bg);border-color:var(--amber-border)}
+.verdict.v-red{background:var(--red-bg);border-color:var(--red-border)}
+.verdict-eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.v-green .verdict-eyebrow{color:var(--green)}
+.v-amber .verdict-eyebrow{color:var(--amber)}
+.v-red .verdict-eyebrow{color:var(--red)}
+.verdict-title{font-family:var(--fd);font-size:17px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+.verdict-body{font-size:12px;color:var(--ink2);line-height:1.75}
+
+/* CUPED */
+.cuped-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.cuped-side{padding:16px;border-radius:6px;border:1px solid var(--border)}
+.cuped-side.before{background:var(--surface2)}
+.cuped-side.after{background:var(--green-bg);border-color:var(--green-border)}
+.cuped-side-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+.cuped-num{font-family:var(--fd);font-size:28px;font-weight:800;margin-bottom:3px}
+.cuped-sub{font-size:11px;color:var(--ink3)}
+
+/* BAYESIAN */
+.prob-display{text-align:center;padding:24px 0;margin-bottom:16px}
+.prob-num{font-family:var(--fd);font-size:64px;font-weight:900;line-height:1;letter-spacing:-.03em}
+.prob-label{font-size:12px;color:var(--ink3);margin-top:6px}
+.prob-bar-wrap{height:12px;background:var(--surface2);border-radius:6px;overflow:hidden;margin:12px 0;position:relative}
+.prob-bar-b{position:absolute;left:0;top:0;bottom:0;background:var(--green);border-radius:6px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+.prob-bar-a{position:absolute;right:0;top:0;bottom:0;background:var(--border2);border-radius:6px}
+.prob-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3)}
+
+/* POWER CANVAS */
+canvas{display:block;width:100%}
+
+/* TIMELINE */
+.tl-row{display:flex;gap:0;margin-bottom:4px;align-items:center}
+.tl-week{font-size:10px;color:var(--ink3);width:36px;flex-shrink:0;text-align:right;padding-right:12px}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-right:12px;position:relative}
+.tl-dot.done{background:var(--green)}
+.tl-dot.active{background:var(--ink);box-shadow:0 0 0 3px rgba(26,24,20,.15)}
+.tl-line-wrap{flex:1;position:relative}
+.tl-bar-bg{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.tl-bar-fill{height:100%;background:var(--ink);border-radius:2px;transition:width 1s cubic-bezier(.16,1,.3,1);width:0%}
+.tl-label{font-size:11px;color:var(--ink2);margin-top:3px}
+
+/* MULTI METRIC */
+.metric-rows{display:flex;flex-direction:column;gap:10px}
+.metric-row-item{display:grid;grid-template-columns:160px 1fr 1fr 80px;gap:12px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px}
+.metric-tag{font-size:9px;padding:2px 7px;border-radius:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+
+/* SEQUENTIAL */
+.seq-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.seq-cell{background:var(--surface2);border-radius:6px;padding:14px 16px;text-align:center}
+.seq-val{font-family:var(--fd);font-size:20px;font-weight:800;margin-bottom:3px}
+.seq-label{font-size:10px;color:var(--ink3);letter-spacing:.06em}
+
+/* CHECKLIST */
+.check-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.6}
+.check-item:last-child{border-bottom:none}
+.check-dot{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-size:9px;font-weight:700}
+.check-dot.ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.check-dot.warn{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.check-dot.bad{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);font-weight:400;font-family:var(--fm)}
+td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--ink)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* EXPORT */
+.export-box{background:#141414;border:1px solid #2a2a2a;color:#e8e4d8;border-radius:8px;padding:20px 22px;font-size:12px;line-height:1.9;font-family:var(--fm);position:relative;overflow:visible}
+.export-box pre{white-space:pre;font-family:var(--fm);font-size:12px;line-height:1.9;color:#c8d8b0;margin:0;overflow-x:auto}
+.code-block{background:#141414;border-radius:6px;padding:16px 18px;font-size:11px;font-family:var(--fm);line-height:1.8;overflow-x:auto;overflow-y:auto;max-height:480px;position:relative;border:1px solid #2a2a2a}
+.code-block pre{white-space:pre;font-family:var(--fm);font-size:11px;line-height:1.8;margin:0;overflow-x:auto;color:#c8d8b0}
+.code-block .kw{color:#7ec8a0}
+.code-block .fn{color:#e8e4d8}
+.code-block .cm{color:#556655}
+.code-block .st{color:#98d896}
+
+.copy-btn{position:absolute;top:14px;right:14px;padding:5px 12px;background:transparent;border:1px solid #444;border-radius:4px;color:#888;font-family:var(--fm);font-size:10px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:all .15s}
+.copy-btn:hover{border-color:#c8f135;color:#c8f135}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:60px 20px;color:var(--ink3)}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.3}
+.empty-title{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--ink2);margin-bottom:6px}
+.empty-sub{font-size:12px;max-width:280px;margin:0 auto}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .cuped-compare{grid-template-columns:1fr}
+  .seq-grid{grid-template-columns:1fr}
+  .metric-row-item{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-right:8px;vertical-align:middle">
+      <!-- Two overlapping bell curves — original A/B test symbol -->
+      <rect width="28" height="28" rx="5" fill="#c8f135"/>
+      <!-- A curve (control) -->
+      <path d="M3 20 Q7 20 9 12 Q11 4 14 4 Q17 4 19 12 Q21 20 25 20" stroke="#1a1814" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Vertical split line -->
+      <line x1="14" y1="6" x2="14" y2="22" stroke="#1a1814" stroke-width="1" stroke-dasharray="2 2" opacity="0.5"/>
+      <!-- A label -->
+      <text x="8" y="25" font-family="monospace" font-size="6" font-weight="700" fill="#1a1814">A</text>
+      <!-- B label -->
+      <text x="18" y="25" font-family="monospace" font-size="6" font-weight="700" fill="#1a1814">B</text>
+    </svg>Experi
+  </div>
+  <div class="sidebar-tagline">Experiment infrastructure for startups</div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Analysis mode</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-freq" onclick="setMode('freq')">Frequentist</button>
+      <button class="mode-btn" id="mode-bayes" onclick="setMode('bayes')">Bayesian</button>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Quick scenarios</div>
+    <div class="scenario-btns">
+      <button class="scenario-btn" onclick="loadS(5,8000,15,.5)">SaaS onboarding <span>5% CVR</span></button>
+      <button class="scenario-btn" onclick="loadS(2.5,20000,10,.6)">E-comm checkout <span>2.5% CVR</span></button>
+      <button class="scenario-btn" onclick="loadS(12,3000,20,.45)">Mobile activation <span>12% CVR</span></button>
+      <button class="scenario-btn" onclick="loadS(0.8,60000,8,.55)">Paid upgrade <span>0.8% CVR</span></button>
+      <button class="scenario-btn" onclick="loadS(25,1500,30,.4)">Onboarding step <span>25% CVR</span></button>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Primary metric</div>
+    <div class="field">
+      <label>Baseline CVR (%)</label>
+      <input type="number" id="cvr" value="5.0" step="0.1" min="0.1" max="99" placeholder="e.g. 5.0"/>
+    </div>
+    <div class="field">
+      <label>Weekly traffic / variant</label>
+      <input type="number" id="traffic" value="8000" min="100" placeholder="e.g. 8000"/>
+    </div>
+    <div class="field">
+      <label>Min detectable lift - <span id="lv">15%</span></label>
+      <div class="slider-wrap">
+        <input type="range" id="lift" min="3" max="50" value="15" step="1" oninput="sl('lv',this.value+'%')"/>
+        <span class="slider-out" id="lv2">15%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">CUPED & statistics</div>
+    <div class="field">
+      <label>Pre-experiment correlation (rho)</label>
+      <div class="slider-wrap">
+        <input type="range" id="rho" min="0" max="0.9" value="0.5" step="0.05" oninput="sl('rv','rho='+parseFloat(this.value).toFixed(2))"/>
+        <span class="slider-out" id="rv">rho=0.50</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Significance (alpha)</label>
+      <select id="alpha">
+        <option value="0.05" selected>5% - standard</option>
+        <option value="0.01">1% - high stakes</option>
+        <option value="0.1">10% - exploratory</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Traffic growth / month (%)</label>
+      <input type="number" id="growth" value="0" min="0" max="200" placeholder="0"/>
+    </div>
+  </div>
+
+  <button class="run-btn" onclick="run()">Run analysis</button>
+
+  <div class="sidebar-section" style="margin-top:24px">
+    <div class="sidebar-label">Experiment history</div>
+    <div id="history-list"><div style="font-size:11px;color:#444">No experiments yet.</div></div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button onclick="toggleDark()" id="theme-btn" style="width:100%;padding:8px;background:rgba(128,128,128,.15);border:1px solid rgba(128,128,128,.2);border-radius:4px;font-family:var(--fm);font-size:11px;cursor:pointer;color:inherit;letter-spacing:.06em;margin-bottom:12px;transition:all .15s;text-align:left;display:flex;align-items:center;gap:8px">
+      <span id="theme-icon" style="font-size:14px">○</span>
+      <span id="theme-label">Dark mode</span>
+    </button>
+    Built by <a href="https://shethshlok.netlify.app" target="_blank">Shlok Sheth</a><br>
+    Purdue Data Science &amp; Statistics<br>
+    VortexifyAI (YC F24)<br>
+    <a href="https://shethshlok.netlify.app" target="_blank">portfolio</a> &nbsp;·&nbsp;
+    <a href="https://github.com/Shlok1375" target="_blank">github</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page-header">
+    <h2 id="main-title">Design your experiment</h2>
+    <p id="main-sub">Experi helps startup PMs design statistically rigorous experiments before they launch. Enter your metrics on the left and get sample size, runtime, CUPED variance reduction, a risk score out of 100, and a full pre-launch checklist.</p>
+  </div>
+
+  <div id="empty-state" class="empty">
+    <div class="empty-icon">⬡</div>
+    <div class="empty-title">Loading example experiment</div>
+    <div class="empty-sub">Pre-loaded: SaaS onboarding at 5% CVR, 8K users/week. Edit the sidebar to use your own numbers.</div>
+  </div>
+
+  <div id="results-wrap" style="display:none">
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('overview')">Overview</button>
+      <button class="tab" onclick="showTab('cuped')">CUPED</button>
+      <button class="tab" onclick="showTab('bayesian')">Bayesian</button>
+      <button class="tab" onclick="showTab('sequential')">Sequential</button>
+      <button class="tab" onclick="showTab('multi')">Multi-metric</button>
+      <button class="tab" onclick="showTab('timeline')">Roadmap</button>
+      <button class="tab" onclick="showTab('live')" style="color:var(--green);font-weight:600">Live</button>
+      <button class="tab" onclick="showTab('segments')">Segments</button>
+      <button class="tab" onclick="showTab('digest')">Digest</button>
+      <button class="tab" onclick="showTab('export')">Export</button>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-panel active" id="tab-overview">
+      <div id="risk-score-panel" style="display:none;margin-bottom:20px">
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;align-items:center">
+          <div style="text-align:center">
+            <div style="position:relative;width:140px;height:140px;margin:0 auto">
+              <canvas id="scoreCanvas" width="140" height="140"></canvas>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                <div id="score-num" style="font-family:var(--fd);font-size:44px;font-weight:900;line-height:1;letter-spacing:-.03em">—</div>
+                <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-top:2px">/ 100</div>
+              </div>
+            </div>
+            <div id="score-grade" style="font-family:var(--fd);font-size:14px;font-weight:700;margin-top:8px">—</div>
+            <div id="score-label" style="font-size:11px;color:var(--ink3);margin-top:2px">experiment quality</div>
+          </div>
+          <div>
+            <div style="font-family:var(--fd);font-size:13px;font-weight:700;margin-bottom:14px;color:var(--ink)">Score breakdown</div>
+            <div id="score-breakdown" style="display:flex;flex-direction:column;gap:8px"></div>
+            <div id="score-summary" style="margin-top:14px;padding:12px 14px;border-radius:6px;font-size:12px;line-height:1.7;border:1px solid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">Per variant</div><div class="kpi-val" id="k-n">—</div><div class="kpi-sub">users needed</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">Runtime</div><div class="kpi-val" id="k-w">—</div><div class="kpi-sub">weeks raw</div><div class="kpi-delta good" id="k-wd">—</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">With CUPED</div><div class="kpi-val" id="k-cw">—</div><div class="kpi-sub">weeks</div><div class="kpi-delta good" id="k-cs">—</div></div>
+        <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">MDE</div><div class="kpi-val" id="k-mde">—</div><div class="kpi-sub">abs. pp lift</div></div>
+      </div>
+
+      <div id="verdict-wrap"></div>
+
+      <div class="card">
+        <div class="card-title">Industry benchmarks</div>
+        <table>
+          <thead><tr><th>Your metric</th><th>Your value</th><th>Industry median</th><th>Assessment</th></tr></thead>
+          <tbody id="bench-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Statistical power curve <span class="badge badge-blue">80% threshold marked</span></div>
+        <canvas id="powerCanvas" style="height:160px"></canvas>
+      </div>
+    </div>
+
+    <!-- CUPED TAB -->
+    <div class="tab-panel" id="tab-cuped">
+      <div class="cuped-compare">
+        <div class="cuped-side before">
+          <div class="cuped-side-label">Without CUPED</div>
+          <div class="cuped-num" id="cu-n-raw">—</div>
+          <div class="cuped-sub">users per variant</div>
+          <div style="margin-top:10px;font-size:11px;color:var(--ink3)" id="cu-w-raw">—</div>
+        </div>
+        <div class="cuped-side after">
+          <div class="cuped-side-label">With CUPED</div>
+          <div class="cuped-num" style="color:var(--green)" id="cu-n-adj">—</div>
+          <div class="cuped-sub">users per variant</div>
+          <div style="margin-top:10px;font-size:11px;color:var(--green)" id="cu-w-adj">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">How CUPED works</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.9">
+          CUPED strips pre-experiment noise by regressing your outcome on pre-period behavior:<br><br>
+          <code style="background:var(--surface2);padding:6px 10px;border-radius:4px;display:block;margin:8px 0;font-size:12px">Y_adj = Y − θ(X − X̄) &nbsp;&nbsp; where &nbsp;&nbsp; θ = Cov(Y,X) / Var(X)</code>
+          <br>Because X is independent of treatment assignment, subtracting θX doesn't change the expected treatment effect - it only removes variance. The result: same signal, less noise, tighter confidence intervals.
+          <br><br><strong style="color:var(--ink)">Variance reduction = rho^2</strong> - the square of the correlation between your pre and in-experiment metric. At rho=0.5, that's 25% reduction. At rho=0.7, it's 49%.
+        </div>
+        <div style="margin-top:16px">
+          <canvas id="cupedCanvas" style="height:140px"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Python implementation</div>
+        <div class="code-block" id="cuped-code">—</div>
+      </div>
+    </div>
+
+    <!-- BAYESIAN TAB -->
+    <div class="tab-panel" id="tab-bayesian">
+      <div class="card">
+        <div class="card-title">Bayesian A/B analysis <span class="badge badge-blue">Beta-Binomial model</span></div>
+        <div class="prob-display">
+          <div class="prob-num" id="b-prob" style="color:var(--green)">—</div>
+          <div class="prob-label">probability variant B beats control</div>
+        </div>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar-b" id="b-bar" style="width:0%"></div>
+        </div>
+        <div class="prob-labels"><span>Variant B wins</span><span>Control wins</span></div>
+        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div style="text-align:center;padding:12px;background:var(--surface2);border-radius:6px">
+            <div style="font-family:var(--fd);font-size:18px;font-weight:800" id="b-uplift">—</div>
+            <div style="font-size:10px;color:var(--ink3);margin-top:3px">expected uplift</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:var(--surface2);border-radius:6px">
+            <div style="font-family:var(--fd);font-size:18px;font-weight:800" id="b-loss">—</div>
+            <div style="font-size:10px;color:var(--ink3);margin-top:3px">expected loss if wrong</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:var(--surface2);border-radius:6px">
+            <div style="font-family:var(--fd);font-size:18px;font-weight:800" id="b-thresh">95%</div>
+            <div style="font-size:10px;color:var(--ink3);margin-top:3px">ship threshold</div>
+          </div>
+        </div>
+        <div id="b-verdict" style="margin-top:16px;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.7"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Frequentist vs Bayesian - when to use which</div>
+        <table>
+          <thead><tr><th>Criterion</th><th>Frequentist</th><th>Bayesian</th></tr></thead>
+          <tbody>
+            <tr><td>Question answered</td><td>P(data | null true)</td><td>P(B wins | this data)</td></tr>
+            <tr><td>Early stopping</td><td>Inflates false positive</td><td>Natural with loss functions</td></tr>
+            <tr><td>Communicating to PMs</td><td>Harder - p-value</td><td>Easier - "73% likely to win"</td></tr>
+            <tr><td>Prior knowledge</td><td>Not used</td><td>Can incorporate</td></tr>
+            <tr><td>Industry standard</td><td>More common</td><td>Netflix, Booking.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SEQUENTIAL TAB -->
+    <div class="tab-panel" id="tab-sequential">
+      <div class="card">
+        <div class="card-title">Sequential testing <span class="badge badge-amber">Prevents early-stopping bias</span></div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.8;margin-bottom:16px">
+          Peeking at experiment results before the planned end date and stopping early inflates your false positive rate - often to 20-30% when you think it's 5%. Sequential testing sets an always-valid confidence boundary that you can check at any time without penalty.
+        </div>
+        <div class="seq-grid">
+          <div class="seq-cell"><div class="seq-val" id="sq-alpha">—</div><div class="seq-label">Nominal alpha</div></div>
+          <div class="seq-cell"><div class="seq-val" id="sq-boundary">—</div><div class="seq-label">Sequential boundary z*</div></div>
+          <div class="seq-cell"><div class="seq-val" id="sq-peeks">—</div><div class="seq-label">Safe peeks allowed</div></div>
+        </div>
+        <canvas id="seqCanvas" style="height:210px;margin-top:8px"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-title">mSPRT implementation</div>
+        <div class="code-block">
+          <pre style="white-space:pre;font-family:var(--fm);font-size:11px;line-height:1.8;margin:0;color:#c8d8b0"><span style="color:#556655"># mixture Sequential Probability Ratio Test</span>
+<span style="color:#7ec8a0">import</span> numpy <span style="color:#7ec8a0">as</span> np
+
+<span style="color:#7ec8a0">def</span> <span style="color:#e8e4d8">msprt_boundary</span>(alpha, n_max, n_current):
+  <span style="color:#556655"># O'Brien-Fleming spending function</span>
+  info_frac = n_current / n_max
+  z_boundary = <span style="color:#e8e4d8">ppf</span>(1 - alpha/2) / np.<span style="color:#e8e4d8">sqrt</span>(info_frac)
+  <span style="color:#7ec8a0">return</span> z_boundary
+
+<span style="color:#556655"># Check at each peek</span>
+z_obs = (p_b - p_a) / se
+z_bound = <span style="color:#e8e4d8">msprt_boundary</span>(0.05, n_max=n_target, n_current=n_so_far)
+<span style="color:#7ec8a0">if</span> abs(z_obs) > z_bound:
+  <span style="color:#e8e4d8">print</span>(<span style="color:#98d896">"Safe to stop - significance reached"</span>)</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- MULTI-METRIC TAB -->
+    <div class="tab-panel" id="tab-multi">
+      <div class="card">
+        <div class="card-title">Multi-metric experiment plan <span class="badge badge-blue">Primary + guardrails</span></div>
+        <div style="font-size:12px;color:var(--ink2);margin-bottom:16px;line-height:1.7">
+          A complete experiment tracks one primary metric and 2-3 guardrail metrics. The primary drives the ship/kill decision. Guardrails are automatic kill switches — if any regresses, the experiment stops regardless of the primary result.
+        </div>
+        <div class="metric-rows" id="multi-rows"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Metric hierarchy framework</div>
+        <table>
+          <thead><tr><th>Level</th><th>Type</th><th>Examples</th><th>Action on regression</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-green" style="font-size:10px">L1</span></td><td>North star</td><td>Revenue, DAU, retention</td><td>—</td></tr>
+            <tr><td><span class="badge badge-blue" style="font-size:10px">L2</span></td><td>Primary</td><td>CVR, activation rate</td><td>Ship/kill decision</td></tr>
+            <tr><td><span class="badge badge-amber" style="font-size:10px">L3</span></td><td>Guardrail</td><td>p99 latency, error rate</td><td>Auto-kill</td></tr>
+            <tr><td><span class="badge badge-red" style="font-size:10px">L4</span></td><td>Diagnostic</td><td>Click depth, scroll</td><td>Inform only</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TIMELINE TAB -->
+    <div class="tab-panel" id="tab-timeline">
+      <div class="card">
+        <div class="card-title">Week-by-week roadmap</div>
+        <div id="tl-rows" style="padding-top:8px"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Pre-launch checklist</div>
+        <div id="checklist"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Traffic growth forecast <span class="badge badge-amber" id="growth-badge">0% monthly growth</span></div>
+        <div style="font-size:12px;color:var(--ink2);margin-bottom:12px" id="growth-text">Configure traffic growth in the sidebar to see how your experiment runway changes over time.</div>
+        <canvas id="growthCanvas" style="height:160px"></canvas>
+      </div>
+    </div>
+
+    <!-- EXPORT TAB -->
+    <div class="tab-panel" id="tab-export">
+      <div class="card">
+        <div class="card-title">Experiment spec - Notion / Slack ready</div>
+        <div class="export-box" id="export-text"><button class="copy-btn" onclick="copyExport()">Copy</button>—</div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Python analysis script</div>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyScript()">Copy</button>
+          <pre id="py-script" style="white-space:pre;font-family:var(--fm);font-size:11px;line-height:1.8;color:#c8d8b0;margin:0;overflow-x:auto">—</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE ANALYZER TAB -->
+    <div class="tab-panel" id="tab-live">
+      <div class="card" style="border-color:var(--green-border)">
+        <div class="card-title">Live experiment analyzer <span class="badge badge-green">Paste real data</span></div>
+        <div style="font-size:12px;color:var(--ink2);margin-bottom:18px;line-height:1.7">Your experiment is running. Paste in the current numbers — Experi will tell you where you stand, whether there's an SRM, your current Bayesian probability, and whether it's safe to stop.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Control (A)</div>
+            <div class="field"><label>Visitors</label><input type="number" id="live-na" placeholder="e.g. 12400" oninput="liveUpdate()"/></div>
+            <div class="field"><label>Conversions</label><input type="number" id="live-ca" placeholder="e.g. 620" oninput="liveUpdate()"/></div>
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Variant (B)</div>
+            <div class="field"><label>Visitors</label><input type="number" id="live-nb" placeholder="e.g. 12600" oninput="liveUpdate()"/></div>
+            <div class="field"><label>Conversions</label><input type="number" id="live-cb" placeholder="e.g. 693" oninput="liveUpdate()"/></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+          <button class="scenario-btn" style="background:var(--surface2);color:var(--ink2);border-color:var(--border)" onclick="fillLive(12400,620,12600,693)">Sample: winning variant</button>
+          <button class="scenario-btn" style="background:var(--surface2);color:var(--ink2);border-color:var(--border)" onclick="fillLive(8000,400,8100,408)">Sample: inconclusive</button>
+          <button class="scenario-btn" style="background:var(--surface2);color:var(--ink2);border-color:var(--border)" onclick="fillLive(15000,750,11000,545)">Sample: SRM detected</button>
+        </div>
+        <div id="live-results" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+            <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">CVR Control</div><div class="kpi-val" id="lv-cvra">-</div></div>
+            <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">CVR Variant</div><div class="kpi-val" id="lv-cvrb">-</div></div>
+            <div class="kpi"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Observed lift</div><div class="kpi-val" id="lv-lift">-</div></div>
+            <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">p-value</div><div class="kpi-val" id="lv-pval">-</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+            <div class="kpi"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Bayesian prob B wins</div><div class="kpi-val" id="lv-bprob">-</div></div>
+            <div class="kpi"><div class="kpi-accent" style="background:var(--amber)"></div><div class="kpi-label">Data collected</div><div class="kpi-val" id="lv-pct">-</div></div>
+            <div class="kpi"><div class="kpi-accent" style="background:var(--ink)"></div><div class="kpi-label">SRM check</div><div class="kpi-val" id="lv-srm">-</div></div>
+          </div>
+          <div id="live-verdict" style="border-radius:8px;padding:18px 22px;border:1px solid;margin-bottom:16px">
+            <div id="live-verdict-tag" style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-bottom:6px"></div>
+            <div id="live-verdict-title" style="font-family:var(--fd);font-size:17px;font-weight:700;margin-bottom:6px"></div>
+            <div id="live-verdict-body" style="font-size:12px;line-height:1.75;color:var(--ink2)"></div>
+          </div>
+          <canvas id="liveCanvas" style="height:120px"></canvas>
+        </div>
+        <div id="live-empty" style="text-align:center;padding:32px;color:var(--ink3);font-size:12px">Enter visitors and conversions above to analyze your live experiment.</div>
+      </div>
+    </div>
+
+    <!-- SEGMENTS TAB -->
+    <div class="tab-panel" id="tab-segments">
+      <div class="card">
+        <div class="card-title">Segment explorer <span class="badge badge-blue">Heterogeneous treatment effects</span></div>
+        <div style="font-size:12px;color:var(--ink2);margin-bottom:18px;line-height:1.7">Different user segments often respond differently to the same treatment. A feature that lifts desktop CVR by 20% might hurt mobile. Define 3 segments below — Experi calculates independent sample sizes, runtimes, and flags which segments are likely underpowered.</div>
+        <div id="seg-rows" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+        <button onclick="addSegment()" style="background:transparent;border:1px dashed var(--border2);color:var(--ink3);font-family:var(--fm);font-size:12px;padding:10px;border-radius:6px;cursor:pointer;width:100%;transition:all .15s" onmouseover="this.style.borderColor='var(--ink3)'" onmouseout="this.style.borderColor='var(--border2)'">+ Add segment</button>
+      </div>
+      <div class="card" id="seg-results-card" style="display:none">
+        <div class="card-title">Segment analysis</div>
+        <table>
+          <thead><tr><th>Segment</th><th>Traffic/wk</th><th>Baseline CVR</th><th>Required n</th><th>Runtime</th><th>Power status</th></tr></thead>
+          <tbody id="seg-tbody"></tbody>
+        </table>
+        <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--ink2);line-height:1.7" id="seg-insight"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Why segment analysis matters</div>
+        <div style="font-size:12px;color:var(--ink2);line-height:1.8">
+          Running one experiment on your full population and calling it done misses heterogeneous treatment effects (HTE). A variant that's neutral overall might be a strong winner for power users and a loser for new users — averaged together, you'd ship something that hurts new user retention.<br><br>
+          <strong style="color:var(--ink)">The right workflow:</strong> run your primary experiment on the full population, then use segments as a diagnostic layer. If segments diverge significantly, consider separate feature flags per cohort rather than a single global ship.
+        </div>
+      </div>
+    </div>
+
+    <!-- DIGEST TAB -->
+    <div class="tab-panel" id="tab-digest">
+      <div class="card">
+        <div class="card-title">Stakeholder digest generator <span class="badge badge-amber">Week-N update</span></div>
+        <div style="font-size:12px;color:var(--ink2);margin-bottom:18px;line-height:1.7">Auto-generates a weekly experiment update you can paste directly into Slack or email. Fill in where you are — Experi writes the update for you.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="field"><label>Current week</label><input type="number" id="dg-week" value="2" min="1" max="20" oninput="genDigest()"/></div>
+          <div class="field"><label>Visitors so far (A)</label><input type="number" id="dg-na" placeholder="e.g. 16000" oninput="genDigest()"/></div>
+          <div class="field"><label>Conversions so far (A)</label><input type="number" id="dg-ca" placeholder="e.g. 800" oninput="genDigest()"/></div>
+          <div class="field"><label>Experiment name</label><input type="text" id="dg-name" placeholder="e.g. Checkout CTA test" oninput="genDigest()"/></div>
+          <div class="field"><label>Visitors so far (B)</label><input type="number" id="dg-nb" placeholder="e.g. 16000" oninput="genDigest()"/></div>
+          <div class="field"><label>Conversions so far (B)</label><input type="number" id="dg-cb" placeholder="e.g. 864" oninput="genDigest()"/></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="scenario-btn" style="background:var(--surface2);color:var(--ink2);border-color:var(--border)" onclick="fillDigest('Checkout CTA test',2,16000,800,16000,864)">Sample: week 2, winning</button>
+          <button class="scenario-btn" style="background:var(--surface2);color:var(--ink2);border-color:var(--border)" onclick="fillDigest('Homepage hero test',1,8000,400,8100,412)">Sample: week 1, early</button>
+          <button class="scenario-btn" style="background:var(--surface2);color:var(--ink2);border-color:var(--border)" onclick="fillDigest('Pricing page redesign',4,32000,1600,32000,1648)">Sample: week 4, close call</button>
+        </div>
+      </div>
+      <div class="card" id="digest-output-card" style="display:none">
+        <div class="card-title">Your digest <span class="badge badge-amber" id="digest-channel">Slack</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button onclick="setDigestChannel('slack')" id="dc-slack" style="padding:6px 14px;background:var(--ink);color:#fff;border:none;border-radius:4px;font-family:var(--fm);font-size:11px;cursor:pointer">Slack</button>
+          <button onclick="setDigestChannel('email')" id="dc-email" style="padding:6px 14px;background:var(--surface2);color:var(--ink2);border:1px solid var(--border);border-radius:4px;font-family:var(--fm);font-size:11px;cursor:pointer">Email</button>
+          <button onclick="setDigestChannel('notion')" id="dc-notion" style="padding:6px 14px;background:var(--surface2);color:var(--ink2);border:1px solid var(--border);border-radius:4px;font-family:var(--fm);font-size:11px;cursor:pointer">Notion</button>
+        </div>
+        <div class="code-block" style="padding:20px 22px">
+          <button class="copy-btn" onclick="copyDigest()">Copy</button>
+          <pre id="digest-text" style="white-space:pre-wrap;font-family:var(--fm);font-size:12px;line-height:1.85;color:#c8d8b0;margin:0"></pre>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /results-wrap -->
+</main>
+</div>
+
+<script>
+// ─── MATH ───────────────────────────────────────────────
+function ppf(p){
+  const a=[-3.969683028665376e1,2.209460984245205e2,-2.759285104469687e2,1.383577518672690e2,-3.066479806614716e1,2.506628277459239];
+  const b=[-5.447609879822406e1,1.615858368580409e2,-1.556989798598866e2,6.680131188771972e1,-1.328068155288572e1];
+  const c=[-7.784894002430293e-3,-3.223964580411365e-1,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+  const d=[7.784695709041462e-3,3.224671290700398e-1,2.445134137142996,3.754408661907416];
+  const pL=0.02425,pH=1-pL;let q,r;
+  if(p<pL){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)}
+  else if(p<=pH){q=p-.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1)}
+  else{q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)}
+}
+function normCDF(z){const t=1/(1+.2316419*Math.abs(z));const d=.3989423*Math.exp(-z*z/2);const p=d*t*(.3193815+t*(-.3565638+t*(1.7814779+t*(-1.8212560+t*1.3302744))));return z>0?1-p:p}
+function calcN(p1,p2,alpha,power){const za=ppf(1-alpha/2),zb=ppf(power),pA=(p1+p2)/2;return Math.ceil(2*pA*(1-pA)*Math.pow(za+zb,2)/Math.pow(p2-p1,2))}
+function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return Math.round(n).toString()}
+function betaProb(a1,b1,a2,b2,sims=20000){let wins=0;for(let i=0;i<sims;i++){const s1=betaSample(a1,b1),s2=betaSample(a2,b2);if(s2>s1)wins++}return wins/sims}
+function betaSample(a,b){const x=gammaSample(a),y=gammaSample(b);return x/(x+y)}
+function gammaSample(a){if(a<1){return gammaSample(1+a)*Math.pow(Math.random(),1/a)}const d=a-1/3,c=1/Math.sqrt(9*d);let x,v;do{do{x=ppf(Math.random()*.998+.001)}while(false);v=1+c*x}while(v<=0);v=v*v*v;const u=Math.random();if(u<1-.0331*(x*x)*(x*x))return d*v;if(Math.log(u)<.5*x*x+d*(1-v+Math.log(v)))return d*v;return gammaSample(a)}
+
+// ─── STATE ───────────────────────────────────────────────
+let mode='freq', history=[], lastResult=null;
+
+function sl(id,val){document.getElementById(id).textContent=val;if(id==='lv'){document.getElementById('lv2').textContent=val}}
+function setMode(m){mode=m;document.getElementById('mode-freq').classList.toggle('active',m==='freq');document.getElementById('mode-bayes').classList.toggle('active',m==='bayes')}
+function loadS(cvr,traffic,lift,rho){
+  document.getElementById('cvr').value=cvr;
+  document.getElementById('traffic').value=traffic;
+  document.getElementById('lift').value=lift;sl('lv',lift+'%');
+  document.getElementById('rho').value=rho;sl('rv','rho='+rho.toFixed(2));
+}
+function showTab(name){
+  const names=['overview','cuped','bayesian','sequential','multi','timeline','live','segments','digest','export'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+}
+
+// ─── MAIN RUN ────────────────────────────────────────────
+function run(){
+  const cvr=parseFloat(document.getElementById('cvr').value)/100;
+  const traffic=parseFloat(document.getElementById('traffic').value);
+  const liftRel=parseFloat(document.getElementById('lift').value)/100;
+  const rho=parseFloat(document.getElementById('rho').value);
+  const alpha=parseFloat(document.getElementById('alpha').value);
+  const growthRate=parseFloat(document.getElementById('growth').value)/100/4; // per week
+  if(!cvr||!traffic||cvr>=1)return;
+
+  const p1=cvr, p2=cvr*(1+liftRel);
+  const n=calcN(p1,p2,alpha,0.8);
+  const weeks=Math.ceil(n/traffic);
+  const mdeAbs=(p2-p1)*100;
+  const varRed=rho*rho;
+  const nCuped=Math.ceil(n*(1-varRed));
+  const weeksCuped=Math.ceil(nCuped/traffic);
+  const weeksSaved=weeks-weeksCuped;
+  const usersSaved=n-nCuped;
+
+  lastResult={cvr,traffic,liftRel,rho,alpha,growthRate,p1,p2,n,weeks,mdeAbs,varRed,nCuped,weeksCuped,weeksSaved,usersSaved};
+
+  // Save to history
+  const ts=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  history.unshift({cvr,traffic,liftRel,weeks,weeksCuped,ts});
+  if(history.length>5)history.pop();
+  renderHistory();
+
+  // Show results
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('results-wrap').style.display='block';
+  document.getElementById('main-title').textContent=`CVR ${(cvr*100).toFixed(1)}% to +${(liftRel*100).toFixed(0)}% lift`;
+  document.getElementById('main-sub').textContent=`${fmt(n)} users/variant | ${weeks}w raw | ${weeksCuped}w with CUPED | alpha=${(alpha*100).toFixed(0)}% — edit inputs on the left to try your own numbers`;
+
+  renderRiskScore(lastResult);
+  renderOverview(lastResult);
+  renderCuped(lastResult);
+  renderBayesian(lastResult);
+  renderSequential(lastResult);
+  renderMulti(lastResult);
+  renderTimeline(lastResult);
+  renderExport(lastResult);
+}
+
+// ─── RISK SCORE ──────────────────────────────────────────
+function renderRiskScore(r){
+  document.getElementById('risk-score-panel').style.display='block';
+
+  // Score components (each 0-100, weighted)
+  const components = [
+    {
+      name: 'Runtime risk',
+      weight: 25,
+      calc: () => {
+        if(r.weeksCuped <= 2) return {score:100, note:'Completes in '+r.weeksCuped+' week(s) — minimal confounding risk'};
+        if(r.weeksCuped <= 4) return {score:70,  note:r.weeksCuped+' weeks - manageable with guardrails'};
+        if(r.weeksCuped <= 6) return {score:35,  note:r.weeksCuped+' weeks - high seasonality/novelty risk'};
+        return {score:10, note:r.weeksCuped+' weeks - too long, redesign experiment'};
+      }
+    },
+    {
+      name: 'Statistical power',
+      weight: 25,
+      calc: () => {
+        // power at target n is 80% by design, but check if CUPED helps enough
+        const gain = r.varRed * 100;
+        if(r.weeks <= 2) return {score:100, note:'Adequate sample even without CUPED'};
+        if(gain >= 30) return {score:90,  note:'CUPED reduces variance '+gain.toFixed(0)+'% - well powered'};
+        if(gain >= 15) return {score:72,  note:'Moderate CUPED benefit ('+gain.toFixed(0)+'% variance reduction)'};
+        return {score:55, note:'Low CUPED benefit - strengthen pre-experiment covariate (rho='+r.rho.toFixed(2)+')'};
+      }
+    },
+    {
+      name: 'MDE realism',
+      weight: 20,
+      calc: () => {
+        const pct = r.liftRel * 100;
+        if(pct >= 5  && pct <= 20) return {score:100, note:pct.toFixed(0)+'% lift is realistic for most products'};
+        if(pct > 20 && pct <= 35)  return {score:70,  note:pct.toFixed(0)+'% lift is ambitious - validate with historical data'};
+        if(pct < 5)                return {score:50,  note:pct.toFixed(0)+'% MDE requires very large sample - consider raising threshold'};
+        return {score:35, note:pct.toFixed(0)+'% lift is very high - may be overfit to desired outcome'};
+      }
+    },
+    {
+      name: 'Baseline CVR health',
+      weight: 15,
+      calc: () => {
+        const cvr = r.cvr * 100;
+        if(cvr >= 2 && cvr <= 15) return {score:100, note:cvr.toFixed(1)+'% is a healthy baseline for reliable measurement'};
+        if(cvr > 15)              return {score:80,  note:cvr.toFixed(1)+'% is high - check for selection bias in your funnel'};
+        if(cvr >= 0.5)            return {score:55,  note:cvr.toFixed(1)+'% baseline is low - you\'ll need more traffic'};
+        return {score:25, note:cvr.toFixed(1)+'% is very low - consider testing higher in the funnel'};
+      }
+    },
+    {
+      name: 'Traffic adequacy',
+      weight: 15,
+      calc: () => {
+        const wk = r.traffic;
+        if(wk >= 10000) return {score:100, note:fmt(wk)+'/wk per variant - strong traffic'};
+        if(wk >= 5000)  return {score:80,  note:fmt(wk)+'/wk - adequate for most tests'};
+        if(wk >= 2000)  return {score:55,  note:fmt(wk)+'/wk - will require longer runtime'};
+        return {score:25, note:fmt(wk)+'/wk is low - experiment will run '+r.weeks+'+ weeks'};
+      }
+    },
+  ];
+
+  let totalScore = 0;
+  const breakdown = components.map(c => {
+    const {score, note} = c.calc();
+    totalScore += score * (c.weight / 100);
+    return {name: c.name, score, note, weight: c.weight};
+  });
+
+  const finalScore = Math.round(totalScore);
+
+  // Grade
+  const grade = finalScore >= 85 ? {letter:'A', label:'Experiment-ready', color:'#2d6a4f'}
+              : finalScore >= 70 ? {letter:'B', label:'Good with caveats', color:'#5a8a3f'}
+              : finalScore >= 55 ? {letter:'C', label:'Proceed carefully', color:'#b8860b'}
+              : finalScore >= 40 ? {letter:'D', label:'High risk', color:'#c0392b'}
+              :                    {letter:'F', label:'Redesign first',   color:'#8b0000'};
+
+  // Update DOM
+  document.getElementById('score-num').textContent = finalScore;
+  document.getElementById('score-num').style.color = grade.color;
+  document.getElementById('score-grade').textContent = 'Grade ' + grade.letter + ' - ' + grade.label;
+  document.getElementById('score-grade').style.color = grade.color;
+
+  // Breakdown bars
+  const bkEl = document.getElementById('score-breakdown');
+  bkEl.innerHTML = breakdown.map(b => {
+    const barColor = b.score >= 80 ? '#2d6a4f' : b.score >= 55 ? '#b8860b' : '#c0392b';
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+        <span style="color:var(--ink2)">${b.name} <span style="color:var(--ink3);font-size:10px">(${b.weight}%)</span></span>
+        <span style="font-weight:600;color:${barColor}">${b.score}</span>
+      </div>
+      <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:3px">
+        <div style="height:100%;width:${b.score}%;background:${barColor};border-radius:3px;transition:width 1s cubic-bezier(.16,1,.3,1)"></div>
+      </div>
+      <div style="font-size:10px;color:var(--ink3)">${b.note}</div>
+    </div>`;
+  }).join('');
+
+  // Summary callout
+  const worstComponent = breakdown.reduce((a,b) => a.score < b.score ? a : b);
+  const summEl = document.getElementById('score-summary');
+  const summColor = grade.color;
+  summEl.style.background = finalScore >= 70 ? 'var(--green-bg)' : finalScore >= 55 ? 'var(--amber-bg)' : 'var(--red-bg)';
+  summEl.style.borderColor = finalScore >= 70 ? 'var(--green-border)' : finalScore >= 55 ? 'var(--amber-border)' : 'var(--red-border)';
+  summEl.style.color = 'var(--ink2)';
+  summEl.innerHTML = `<strong style="color:${summColor}">Score ${finalScore}/100.</strong> ${
+    finalScore >= 85 ? 'This experiment is well-configured. Run it.' :
+    finalScore >= 70 ? `Solid setup. Biggest risk: ${worstComponent.name.toLowerCase()} (${worstComponent.score}/100). Address this before launch.` :
+    finalScore >= 55 ? `Proceed with caution. ${worstComponent.name} scored ${worstComponent.score}/100 — ${worstComponent.note.toLowerCase()}.` :
+    `This experiment needs work before it runs. Primary issue: ${worstComponent.name.toLowerCase()} scored ${worstComponent.score}/100.`
+  }`;
+
+  // Draw gauge
+  drawGauge(finalScore, grade.color);
+}
+
+function drawGauge(score, color){
+  const c = document.getElementById('scoreCanvas');
+  if(!c) return;
+  const size = 140;
+  c.width = size * devicePixelRatio;
+  c.height = size * devicePixelRatio;
+  c.style.width = size + 'px';
+  c.style.height = size + 'px';
+  const ctx = c.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  const cx = size/2, cy = size/2, r = 56, lw = 10;
+  const startAngle = Math.PI * 0.75;
+  const endAngle   = Math.PI * 2.25;
+  const scoreAngle = startAngle + (score/100) * (endAngle - startAngle);
+
+  // Track
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle, endAngle);
+  ctx.strokeStyle = '#e0dbd0';
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Fill - animated via requestAnimationFrame
+  let current = 0;
+  const target = score;
+  function animate(){
+    current = Math.min(current + 2.5, target);
+    const ang = startAngle + (current/100)*(endAngle-startAngle);
+    ctx.clearRect(0, 0, size, size);
+    // bg track
+    ctx.beginPath();ctx.arc(cx,cy,r,startAngle,endAngle);
+    ctx.strokeStyle='#e0dbd0';ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+    // score arc
+    ctx.beginPath();ctx.arc(cx,cy,r,startAngle,ang);
+    ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+    // tick marks at 0, 25, 50, 75, 100
+    [0,25,50,75,100].forEach(v=>{
+      const a=startAngle+(v/100)*(endAngle-startAngle);
+      const x1=cx+Math.cos(a)*(r-8),y1=cy+Math.sin(a)*(r-8);
+      const x2=cx+Math.cos(a)*(r+2),y2=cy+Math.sin(a)*(r+2);
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+      ctx.strokeStyle=v<=current?color:'#ccc8bc';ctx.lineWidth=1.5;ctx.lineCap='butt';ctx.stroke();
+    });
+    if(current < target) requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+
+function renderOverview(r){
+  document.getElementById('k-n').textContent=fmt(r.n);
+  document.getElementById('k-w').textContent=r.weeks;
+  document.getElementById('k-wd').textContent='raw';
+  document.getElementById('k-cw').textContent=r.weeksCuped;
+  document.getElementById('k-cs').textContent=r.weeksSaved>0?`−${r.weeksSaved} wk`:'minimal gain';
+  document.getElementById('k-mde').textContent=r.mdeAbs.toFixed(2)+'pp';
+
+  // Verdict
+  const vw=document.getElementById('verdict-wrap');
+  let vc='v-green',vt='',vb='';
+  if(r.weeksCuped<=2){vc='v-green';vt='You\'re set — run it this sprint.';vb=`With CUPED, you\'ll reach significance in ${r.weeksCuped} week${r.weeksCuped>1?'s':''} - well within the safe window. Your ${(r.liftRel*100).toFixed(0)}% MDE is realistic for a ${(r.cvr*100).toFixed(1)}% baseline. Pre-register, QA instrumentation, and ship.`}
+  else if(r.weeks<=5){vc='v-amber';vt=`${r.weeks} weeks raw - apply CUPED to reach ${r.weeksCuped}.`;vb=`Manageable with CUPED applied. Set a hard calendar stop. Do not peek without sequential testing - peeking inflates false positive rate silently. Define guardrail metrics now.`}
+  else{vc='v-red';vt=`${r.weeks} weeks is too risky. Redesign first.`;vb=`Experiments beyond 5-6 weeks accumulate uncontrollable confounders. Options: (1) raise your MDE, (2) grow traffic first, (3) apply CUPED - brings you to ${r.weeksCuped} weeks, (4) target a high-CVR user segment.`}
+  vw.innerHTML=`<div class="verdict ${vc}"><div class="verdict-eyebrow">${vc==='v-green'?'Green light':vc==='v-amber'?'Proceed with care':'Redesign first'}</div><div class="verdict-title">${vt}</div><div class="verdict-body">${vb}</div></div>`;
+
+  // Benchmarks
+  const rows=[
+    {m:'Baseline CVR',v:(r.cvr*100).toFixed(1)+'%',ind:'2-5%',s:r.cvr<.005?'bad':r.cvr<.02?'warn':'ok',l:r.cvr<.005?'Very low':r.cvr<.02?'Below avg':'Healthy'},
+    {m:'Users/variant',v:fmt(r.n),ind:'5K-50K',s:r.n>100000?'bad':r.n>50000?'warn':'ok',l:r.n>100000?'Very high':'Typical'},
+    {m:'Runtime (CUPED)',v:r.weeksCuped+' wks',ind:'1-4 weeks',s:r.weeksCuped>5?'bad':r.weeksCuped>3?'warn':'ok',l:r.weeksCuped>5?'Too long':r.weeksCuped>3?'Borderline':'Good'},
+    {m:'MDE relative',v:(r.liftRel*100).toFixed(0)+'%',ind:'10-20%',s:r.liftRel<.05?'bad':r.liftRel>.3?'warn':'ok',l:r.liftRel<.05?'Ambitious':'Realistic'},
+    {m:'CUPED gain',v:(r.varRed*100).toFixed(0)+'%',ind:'25-50%',s:r.varRed<.1?'warn':r.varRed>.15?'ok':'warn',l:r.varRed<.1?'Low rho':'Strong'},
+  ];
+  const badges={ok:'badge-green',warn:'badge-amber',bad:'badge-red'};
+  const labels={ok:'ok',warn:'!',bad:'x'};
+  document.getElementById('bench-tbody').innerHTML=rows.map(r=>`<tr><td>${r.m}</td><td style="font-weight:500">${r.v}</td><td style="color:var(--ink3)">${r.ind}</td><td><span class="badge ${badges[r.s]}">${labels[r.s]} ${r.l}</span></td></tr>`).join('');
+
+  setTimeout(()=>drawPowerCurve(r),100);
+}
+
+function drawPowerCurve(r){
+  const c=document.getElementById('powerCanvas');
+  const W=c.offsetWidth||700,H=160;
+  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const dark=document.documentElement.classList.contains('dark');
+  const col={axis:dark?'#333':'#e0dbd0',grid:dark?'#222':'#f0ede6',muted:dark?'#555':'#9c9890',line:dark?'#e8e4d8':'#1a1814',green:'#2d6a4f',bg:dark?'#1a1a1a':'#f7f5f0'};
+  const za=ppf(1-r.alpha/2);
+  const pL=28,pR=12,pT=12,pB=24;
+  const cW=W-pL-pR,cH=H-pT-pB;
+  const nMin=Math.ceil(r.n*.05),nMax=Math.ceil(r.n*2.2);
+  ctx.strokeStyle=col.axis;ctx.lineWidth=.5;
+  ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+cH);ctx.lineTo(pL+cW,pT+cH);ctx.stroke();
+  const y80=pT+cH*.2;
+  ctx.strokeStyle=col.grid;ctx.setLineDash([3,3]);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pL,y80);ctx.lineTo(pL+cW,y80);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=col.muted;ctx.font=`10px 'IBM Plex Mono',monospace`;ctx.textAlign='right';
+  ctx.fillText('80%',pL-4,y80+4);
+  ctx.strokeStyle=col.line;ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=80;i++){
+    const n=nMin+((nMax-nMin)/80)*i;
+    const pA=(r.p1+r.p2)/2,se=Math.sqrt(2*pA*(1-pA)/n);
+    const z=Math.abs(r.p2-r.p1)/se-za;
+    const pw=Math.max(0,Math.min(1,normCDF(z)));
+    const x=pL+(i/80)*cW,y=pT+cH*(1-pw);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  const xM=pL+((r.n-nMin)/(nMax-nMin))*cW;
+  ctx.strokeStyle='#2d6a4f';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(xM,pT);ctx.lineTo(xM,pT+cH);ctx.stroke();
+  ctx.setLineDash([]);
+  const labelText='n='+fmt(r.n);
+  ctx.font=`bold 10px 'IBM Plex Mono',monospace`;
+  const lw=ctx.measureText(labelText).width;
+  ctx.fillStyle=dark?'rgba(26,26,26,0.92)':'rgba(247,245,240,0.92)';
+  ctx.fillRect(xM-lw/2-4,pT+cH-22,lw+8,14);
+  ctx.fillStyle=col.green;ctx.textAlign='center';
+  ctx.fillText(labelText,xM,pT+cH-11);
+  [0,.5,1].forEach(v=>{ctx.fillStyle=col.muted;ctx.textAlign='right';ctx.font=`10px 'IBM Plex Mono',monospace`;ctx.fillText((v*100).toFixed(0)+'%',pL-4,pT+cH*(1-v)+4)});
+  ctx.fillStyle=col.muted;ctx.textAlign='center';ctx.fillText('sample size per variant',pL+cW/2,pT+cH+20);
+}
+
+// ─── CUPED ────────────────────────────────────────────────
+function renderCuped(r){
+  document.getElementById('cu-n-raw').textContent=fmt(r.n);
+  document.getElementById('cu-w-raw').textContent=`${r.weeks} weeks at ${fmt(r.traffic)} users/week`;
+  document.getElementById('cu-n-adj').textContent=fmt(r.nCuped);
+  document.getElementById('cu-w-adj').textContent=`${r.weeksCuped} weeks - saves ${fmt(r.usersSaved)} users`;
+  document.getElementById('cuped-code').innerHTML=`<pre style="white-space:pre;font-family:var(--fm);font-size:11px;line-height:1.8;margin:0;color:#c8d8b0"><span style="color:#556655"># CUPED variance reduction</span>
+<span style="color:#7ec8a0">import</span> numpy <span style="color:#7ec8a0">as</span> np
+<span style="color:#7ec8a0">from</span> scipy <span style="color:#7ec8a0">import</span> stats
+
+X_all = np.concatenate([X_ctrl, X_var])
+Y_all = np.concatenate([Y_ctrl, Y_var])
+
+theta = np.cov(Y_all, X_all)[0,1] / np.var(X_all)
+X_mean = X_all.mean()
+
+Y_ctrl_adj = Y_ctrl - theta * (X_ctrl - X_mean)
+Y_var_adj  = Y_var  - theta * (X_var  - X_mean)
+
+var_reduction = 1 - np.var(Y_ctrl_adj) / np.var(Y_ctrl)
+<span style="color:#556655"># approx rho^2 = ${(r.varRed*100).toFixed(0)}% for your rho=${r.rho.toFixed(2)}</span>
+
+_, p_value = stats.ttest_ind(Y_var_adj, Y_ctrl_adj)
+lift = (Y_var_adj.mean() - Y_ctrl_adj.mean()) / Y_ctrl_adj.mean()</pre>`;
+  setTimeout(()=>drawCupedChart(r),100);
+}
+
+function drawCupedChart(r){
+  const c=document.getElementById('cupedCanvas');
+  const W=c.offsetWidth||600,H=140;
+  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const dark=document.documentElement.classList.contains('dark');
+  const col={axis:dark?'#333':'#e0dbd0',grid:dark?'#252525':'#f0ede6',muted:dark?'#555':'#9c9890',line:dark?'#e8e4d8':'#1a1814',green:'#2d6a4f',bg:dark?'#1a1a1a':'#f7f5f0'};
+  const rhos=[0,.1,.2,.3,.4,.5,.6,.7,.8,.9];
+  const pL=44,pR=12,pT=12,pB=24,cW=W-pL-pR,cH=H-pT-pB;
+  ctx.strokeStyle='#e0dbd0';ctx.lineWidth=.5;
+  ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+cH);ctx.lineTo(pL+cW,pT+cH);ctx.stroke();
+  [0,25,50,75,100].forEach(v=>{
+    const y=pT+cH*(1-v/100);
+    ctx.strokeStyle=col.grid;ctx.lineWidth=.5;
+    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+cW,y);ctx.stroke();
+    ctx.fillStyle=col.muted;ctx.font=`10px 'IBM Plex Mono',monospace`;ctx.textAlign='right';
+    ctx.fillText(v+'%',pL-4,y+4);
+  });
+  ctx.strokeStyle=col.line;ctx.lineWidth=2;ctx.beginPath();
+  rhos.forEach((rho,i)=>{
+    const vr=rho*rho*100;
+    const x=pL+(i/(rhos.length-1))*cW;
+    const y=pT+cH*(1-vr/100);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  const xM=pL+(r.rho/.9)*cW;
+  const yM=pT+cH*(1-r.varRed);
+  ctx.fillStyle=col.green;ctx.beginPath();ctx.arc(xM,yM,5,0,Math.PI*2);ctx.fill();
+  const dotLabel=`rho=${r.rho.toFixed(1)}, ${(r.varRed*100).toFixed(0)}% reduction`;
+  ctx.font=`bold 10px 'IBM Plex Mono',monospace`;
+  const dlw=ctx.measureText(dotLabel).width;
+  const dlx=Math.min(xM-dlw/2, pL+cW-dlw-4);
+  const dly=yM-16;
+  ctx.fillStyle=dark?'rgba(26,26,26,0.92)':'rgba(247,245,240,0.92)';
+  ctx.fillRect(dlx-3,dly-10,dlw+6,13);
+  ctx.fillStyle=col.green;ctx.textAlign='left';
+  ctx.fillText(dotLabel,dlx,dly);
+  ctx.fillStyle=col.muted;ctx.textAlign='center';ctx.font=`10px 'IBM Plex Mono',monospace`;
+  ctx.fillText('pre-experiment correlation (rho)',pL+cW/2,pT+cH+20);
+  rhos.forEach((rho,i)=>{
+    if(i===0) return;
+    const x=pL+(i/(rhos.length-1))*cW;
+    ctx.fillStyle=col.muted;ctx.font=`10px 'IBM Plex Mono',monospace`;ctx.textAlign='center';
+    if(i%2===0) ctx.fillText(rho.toFixed(1),x,pT+cH+10);
+  });
+}
+
+// ─── BAYESIAN ────────────────────────────────────────────
+function renderBayesian(r){
+  const n=Math.min(r.n,5000);
+  const c1=Math.round(r.p1*n),c2=Math.round(r.p2*n);
+  const prob=betaProb(1+c1,1+(n-c1),1+c2,1+(n-c2),10000);
+  const probPct=Math.round(prob*100);
+  document.getElementById('b-prob').textContent=probPct+'%';
+  document.getElementById('b-prob').style.color=probPct>=95?'var(--green)':probPct>=80?'var(--amber)':'var(--red)';
+  document.getElementById('b-bar').style.width=probPct+'%';
+  const expectedUplift=(r.p2-r.p1)/r.p1*100;
+  document.getElementById('b-uplift').textContent='+'+expectedUplift.toFixed(1)+'%';
+  document.getElementById('b-loss').textContent=(r.p2-r.p1).toFixed(3)+'pp';
+  const bv=document.getElementById('b-verdict');
+  if(probPct>=95){bv.style.background='var(--green-bg)';bv.style.border='1px solid var(--green-border)';bv.innerHTML=`<strong style="color:var(--green)">Ship it.</strong> ${probPct}% probability variant B beats control - above the 95% threshold. Expected uplift is ${expectedUplift.toFixed(1)}% relative.`}
+  else if(probPct>=80){bv.style.background='var(--amber-bg)';bv.style.border='1px solid var(--amber-border)';bv.innerHTML=`<strong style="color:var(--amber)">Collect more data.</strong> ${probPct}% is promising but below the 95% ship threshold. Extend the experiment or treat as directional signal only.`}
+  else{bv.style.background='var(--red-bg)';bv.style.border='1px solid var(--red-border)';bv.innerHTML=`<strong style="color:var(--red)">Insufficient evidence.</strong> ${probPct}% probability B wins - not enough to ship. Extend runtime or consider that the effect may be smaller than your MDE.`}
+}
+
+// ─── SEQUENTIAL ──────────────────────────────────────────
+function renderSequential(r){
+  document.getElementById('sq-alpha').textContent=(r.alpha*100).toFixed(0)+'%';
+  const boundary=(ppf(1-r.alpha/2)/Math.sqrt(0.5)).toFixed(3);
+  document.getElementById('sq-boundary').textContent='z*='+boundary;
+  document.getElementById('sq-peeks').textContent=Math.floor(r.weeksCuped)+' wk intervals';
+  setTimeout(()=>drawSeqChart(r),100);
+}
+
+function drawSeqChart(r){
+  const c=document.getElementById('seqCanvas');
+  const W=c.offsetWidth||600,H=210;
+  const dark=document.documentElement.classList.contains('dark');
+  const col={axis:dark?'#333':'#e0dbd0',grid:dark?'#252525':'#f0ede6',muted:dark?'#555':'#9c9890',green:'#2d6a4f',red:'#c0392b',blue:'#1a4a8a',line:dark?'#e8e4d8':'#1a1814'};
+  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const pL=44,pR=12,pT=16,pB=24,cW=W-pL-pR,cH=H-pT-pB;
+  const za=ppf(1-r.alpha/2);
+  ctx.strokeStyle=col.axis;ctx.lineWidth=.5;
+  ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+cH);ctx.lineTo(pL+cW,pT+cH);ctx.stroke();
+  const maxZ=za*1.8,steps=60;
+  const toY=z=>pT+cH/2-z*(cH/2/maxZ);
+  [0,za,-za].forEach(v=>{
+    const y=toY(v);
+    ctx.strokeStyle=v===0?col.axis:v>0?'#b7dfc8':'#f0b8b0';ctx.lineWidth=v===0?.5:1;
+    ctx.setLineDash(v===0?[]:[4,4]);
+    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+cW,y);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=col.muted;ctx.font=`10px 'IBM Plex Mono',monospace`;ctx.textAlign='right';
+    ctx.fillText(v.toFixed(1),pL-4,y+4);
+  });
+  // Spend function boundary
+  ctx.strokeStyle=col.green;ctx.lineWidth=1.5;ctx.beginPath();
+  for(let i=1;i<=steps;i++){
+    const frac=i/steps;
+    const bound=za/Math.sqrt(frac);
+    const x=pL+(i/steps)*cW;
+    const y=toY(Math.min(bound,maxZ));
+    i===1?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.strokeStyle=col.red;ctx.lineWidth=1.5;ctx.beginPath();
+  for(let i=1;i<=steps;i++){
+    const frac=i/steps;
+    const bound=za/Math.sqrt(frac);
+    const x=pL+(i/steps)*cW;
+    const y=toY(Math.max(-bound,-maxZ));
+    i===1?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  // Simulated path
+  ctx.strokeStyle=col.blue;ctx.lineWidth=1.5;ctx.setLineDash([2,2]);ctx.beginPath();
+  let z=0;
+  for(let i=0;i<=steps;i++){
+    z+=((Math.random()-.48)*.4);
+    const x=pL+(i/steps)*cW;
+    const y=toY(Math.max(-maxZ,Math.min(maxZ,z)));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#9c9890';ctx.font=`9px 'IBM Plex Mono',monospace`;ctx.textAlign='left';
+  // legend bottom-left, below chart area
+  ctx.fillStyle=col.green;
+  ctx.fillRect(pL,pT+cH+4,20,2);
+  ctx.fillText("O'Brien-Fleming boundary",pL+24,pT+cH+8);
+  ctx.fillStyle=col.blue;
+  ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(pL,pT+cH+14);ctx.lineTo(pL+20,pT+cH+14);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillText('simulated test statistic',pL+24,pT+cH+18);
+  ctx.fillStyle=col.muted;ctx.textAlign='center';ctx.font=`10px 'IBM Plex Mono',monospace`;
+  ctx.fillText('information fraction (% of target n collected)',pL+cW/2,pT+cH+32);
+}
+
+// ─── MULTI METRIC ────────────────────────────────────────
+function renderMulti(r){
+  const metrics=[
+    {name:'Primary: CVR',type:'L2 Primary',cvr:r.cvr,lift:r.liftRel,n:r.n,w:r.weeksCuped,badge:'badge-blue'},
+    {name:'Guardrail: page latency',type:'L3 Guardrail',cvr:null,lift:-0.05,n:Math.ceil(r.n*.7),w:Math.ceil(r.weeksCuped*.7),badge:'badge-amber'},
+    {name:'Guardrail: error rate',type:'L3 Guardrail',cvr:null,lift:-0.02,n:Math.ceil(r.n*1.2),w:Math.ceil(r.weeksCuped*1.2),badge:'badge-amber'},
+    {name:'Diagnostic: scroll depth',type:'L4 Diagnostic',cvr:null,lift:0.08,n:Math.ceil(r.n*.5),w:Math.ceil(r.weeksCuped*.5),badge:'badge-green'},
+  ];
+  document.getElementById('multi-rows').innerHTML=metrics.map(m=>`
+    <div class="metric-row-item">
+      <div><div style="font-weight:500;font-size:12px;color:var(--ink)">${m.name}</div><span class="badge ${m.badge}" style="font-size:9px;margin-top:3px;display:inline-block">${m.type}</span></div>
+      <div><div style="font-size:10px;color:var(--ink3);margin-bottom:2px">MDE</div><div style="font-weight:600">${m.lift>0?'+':''}${(m.lift*100).toFixed(0)}% rel.</div></div>
+      <div><div style="font-size:10px;color:var(--ink3);margin-bottom:2px">Required n</div><div style="font-weight:600">${fmt(m.n)}/variant</div></div>
+      <div style="text-align:right"><div style="font-size:10px;color:var(--ink3);margin-bottom:2px">Runtime</div><div style="font-weight:600;color:${m.w<=r.weeksCuped?'var(--green)':'var(--red)'}">${m.w}w</div></div>
+    </div>`).join('');
+}
+
+// ─── TIMELINE ────────────────────────────────────────────
+function renderTimeline(r){
+  const phases=[
+    {w:0,label:'Hypothesis doc - MDE pre-registered - guardrail metrics defined',done:true},
+    {w:1,label:'Instrumentation QA - SRM hold-out check - analytics events verified'},
+    {w:1,label:'Experiment live - no-peek policy in effect'},
+    {w:Math.ceil(r.weeksCuped/2),label:'Midpoint novelty effect audit - segment balance check'},
+    {w:r.weeksCuped,label:'Data collection complete - CUPED adjustment applied'},
+    {w:r.weeksCuped+1,label:'Statistical analysis - Bayesian update - guardrail review'},
+    {w:r.weeksCuped+1,label:'Ship / kill decision - stakeholder doc - experiment archived'},
+  ];
+  const tlEl=document.getElementById('tl-rows');
+  tlEl.innerHTML='';
+  phases.forEach(p=>{
+    const pct=Math.round((p.w/(r.weeksCuped+2))*100);
+    const div=document.createElement('div');div.className='tl-row';
+    div.innerHTML=`<div class="tl-week">W${p.w}</div><div class="tl-dot ${p.done?'done':p.w===0?'active':''}"></div><div class="tl-line-wrap"><div class="tl-bar-bg"><div class="tl-bar-fill" data-pct="${pct}" style="width:0%"></div></div><div class="tl-label">${p.label}</div></div>`;
+    tlEl.appendChild(div);
+  });
+  setTimeout(()=>document.querySelectorAll('.tl-bar-fill').forEach(el=>el.style.width=el.dataset.pct+'%'),150);
+
+  const checks=[
+    {s:'ok',t:'MDE pre-registered',b:`Detecting >=${(r.liftRel*100).toFixed(0)}% relative lift on ${(r.cvr*100).toFixed(1)}% baseline. Write this before touching the dashboard.`},
+    {s:r.weeksCuped>4?'bad':'ok',t:r.weeksCuped>4?'Runtime risk persists with CUPED':'Runtime safe with CUPED applied',b:r.weeksCuped>4?`${r.weeksCuped} weeks is still long. Raise MDE or target higher-CVR segment.`:`${r.weeksCuped} weeks is within the safe 1-5 week window.`},
+    {s:'warn',t:'SRM check: set up pre-launch',b:'Run a 24h 50/50 hold-out. Chi-squared p<0.01 on your traffic split = experiment invalid. Full stop.'},
+    {s:'ok',t:'Guardrail metrics defined',b:'Identify 2-3 metrics that must not regress. These are automatic kill switches - non-negotiable.'},
+    {s:r.varRed>.15?'ok':'warn',t:`CUPED reduces variance ${(r.varRed*100).toFixed(0)}%`,b:`At rho=${r.rho.toFixed(2)}, CUPED saves ${fmt(r.usersSaved)} users and ${r.weeksSaved} week${r.weeksSaved!==1?'s':''}.`},
+    {s:'ok',t:'No-peek policy enforced',b:`Set a hard calendar stop for Week ${r.weeksCuped}. If you must peek, implement mSPRT sequential testing first.`},
+  ];
+  const chEl=document.getElementById('checklist');
+  chEl.innerHTML='';
+  checks.forEach(c=>{
+    const d=document.createElement('div');d.className='check-item';
+    const icons={ok:'ok',warn:'!',bad:'x'};
+    d.innerHTML=`<div class="check-dot ${c.s}">${icons[c.s]}</div><div><div style="color:var(--ink);font-weight:500;margin-bottom:2px">${c.t}</div><div style="color:var(--ink3)">${c.b}</div></div>`;
+    chEl.appendChild(d);
+  });
+
+  // Growth chart
+  const growthBadge=document.getElementById('growth-badge');
+  const growthText=document.getElementById('growth-text');
+  const gRate=(r.growthRate||0)*100*4;
+  growthBadge.textContent=gRate.toFixed(0)+'% monthly growth';
+  growthText.textContent=gRate>0?`At ${gRate.toFixed(0)}% monthly growth, your traffic increases over time — shown below. Green = target sample reached.`:`No traffic growth configured. Add monthly growth % in sidebar to see forecast.`;
+  setTimeout(()=>drawGrowthChart(r),100);
+}
+
+function drawGrowthChart(r){
+  const dark=document.documentElement.classList.contains('dark');
+  const col={axis:dark?'#333':'#e0dbd0',grid:dark?'#252525':'#f0ede6',muted:dark?'#555':'#9c9890',green:'#2d6a4f',bar_off:dark?'#333':'#ccc8bc'};
+  const c=document.getElementById('growthCanvas');
+  const W=c.offsetWidth||600,H=160;
+  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const pL=52,pR=80,pT=16,pB=24,cW=W-pL-pR,cH=H-pT-pB;
+  const maxWeeks=Math.max(r.weeks+4,12);
+  let weeklyUsers=[],t=r.traffic;
+  for(let w=0;w<maxWeeks;w++){weeklyUsers.push(t);t*=(1+(r.growthRate||0))}
+  let cumUsers=[];let cum=0;
+  weeklyUsers.forEach(u=>{cum+=u;cumUsers.push(cum)});
+  const maxU=cumUsers[maxWeeks-1];
+  // Axes
+  ctx.strokeStyle=col.axis;ctx.lineWidth=.5;
+  ctx.beginPath();ctx.moveTo(pL,pT);ctx.lineTo(pL,pT+cH);ctx.lineTo(pL+cW,pT+cH);ctx.stroke();
+  // Grid lines
+  [.25,.5,.75,1].forEach(v=>{
+    const y=pT+cH*(1-v);
+    ctx.strokeStyle=col.grid;ctx.lineWidth=.5;
+    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+cW,y);ctx.stroke();
+  });
+  // Target dashed line
+  const targetN=r.nCuped;
+  const yTgt=pT+cH*(1-targetN/maxU);
+  const clampedY=Math.max(pT+4, Math.min(pT+cH-4, yTgt));
+  ctx.strokeStyle=col.green;ctx.setLineDash([4,3]);ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(pL,clampedY);ctx.lineTo(pL+cW+4,clampedY);ctx.stroke();
+  ctx.setLineDash([]);
+  // Pill label on right side — never overlaps bars
+  const label='target: '+fmt(targetN);
+  ctx.font=`bold 9px 'IBM Plex Mono',monospace`;
+  const lw=ctx.measureText(label).width;
+  const lx=pL+cW+8, ly=clampedY;
+  // Background pill
+  ctx.fillStyle='#2d6a4f';
+  ctx.beginPath();
+  ctx.roundRect(lx-2, ly-8, lw+8, 14, 3);
+  ctx.fill();
+  // Label text
+  ctx.fillStyle=dark?'#0a1a0f':'#e8f5ee';
+  ctx.textAlign='left';
+  ctx.fillText(label, lx+2, ly+2);
+  // Bars
+  const barW=(cW/maxWeeks)*.72;
+  cumUsers.forEach((u,i)=>{
+    const x=pL+((i+.5)/maxWeeks)*cW-barW/2;
+    const h=Math.min(cH,(u/maxU)*cH);
+    const y=pT+cH-h;
+    const reached=u>=targetN;
+    ctx.fillStyle=reached?col.green:col.bar_off;
+    ctx.beginPath();
+    ctx.roundRect?ctx.roundRect(x,y,barW,h,2):ctx.rect(x,y,barW,h);
+    ctx.fill();
+    // Week number below bar (every 2nd)
+    if(i%2===0){
+      ctx.fillStyle=col.muted;ctx.font=`9px 'IBM Plex Mono',monospace`;ctx.textAlign='center';
+      ctx.fillText('w'+(i+1),x+barW/2,pT+cH+14);
+    }
+  });
+  // Y axis labels
+  [0,.5,1].forEach(v=>{
+    ctx.fillStyle=col.muted;ctx.font=`10px 'IBM Plex Mono',monospace`;ctx.textAlign='right';
+    ctx.fillText(fmt(maxU*v),pL-6,pT+cH*(1-v)+4);
+  });
+}
+
+// ─── EXPORT ──────────────────────────────────────────────
+function renderExport(r){
+  const d=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const sep='-'.repeat(48);
+  const spec=`EXPERIMENT SPEC  ${d}
+${sep}
+
+HYPOTHESIS
+  Variant B increases CVR from ${(r.cvr*100).toFixed(1)}% to >= ${(r.p2*100).toFixed(2)}%
+  MDE: ${(r.liftRel*100).toFixed(0)}% relative lift (${r.mdeAbs.toFixed(2)}pp absolute)
+
+STATISTICAL PARAMETERS
+  Significance (alpha) : ${(r.alpha*100).toFixed(0)}%
+  Power (1-beta)       : 80%
+  Test type            : Two-sided z-test
+
+SAMPLE SIZE
+  Per variant (raw)    : ${fmt(r.n)} users
+  Per variant (CUPED)  : ${fmt(r.nCuped)} users  (-${fmt(r.usersSaved)} saved)
+  Total                : ${fmt(r.nCuped*2)} users
+
+RUNTIME
+  Traffic/variant/week : ${fmt(r.traffic)} users
+  Raw runtime          : ${r.weeks} weeks
+  With CUPED           : ${r.weeksCuped} weeks
+
+CUPED
+  Correlation (rho)    : ${r.rho.toFixed(2)}
+  Variance reduction   : ${(r.varRed*100).toFixed(0)}%
+  Users saved          : ${fmt(r.usersSaved)}
+  Weeks saved          : ${r.weeksSaved}
+
+GUARDRAIL METRICS
+  [ ] Page latency     must not increase >5%
+  [ ] Error rate       must not increase >10%
+  [ ] DAU              must not decrease
+
+LAUNCH CHECKLIST
+  [ ] Hypothesis pre-registered
+  [ ] SRM hold-out validated (24h)
+  [ ] Analytics events QA complete
+  [ ] Guardrail alerts configured
+  [ ] No-peek stop date: Week ${r.weeksCuped}
+
+${sep}
+Experi  shethshlok.netlify.app`;;
+  window._exportText=spec;
+  document.getElementById('export-text').innerHTML=`<button class="copy-btn" onclick="copyExport()">Copy</button><pre style="color:#c8f135;white-space:pre;font-family:var(--fm);font-size:12px;line-height:1.9;margin:0;overflow-x:auto">${spec}</pre>`;
+
+  const script=`import numpy as np
+from scipy import stats
+
+# ── CONFIG ──────────────────────────────
+p_baseline   = ${r.cvr.toFixed(4)}   # baseline CVR
+mde_relative = ${r.liftRel.toFixed(4)}  # minimum detectable lift
+alpha        = ${r.alpha}
+power        = 0.80
+rho          = ${r.rho.toFixed(2)}   # CUPED correlation
+
+# ── SAMPLE SIZE ──────────────────────────
+p_alt = p_baseline * (1 + mde_relative)
+za, zb = stats.norm.ppf(1-alpha/2), stats.norm.ppf(power)
+p_avg = (p_baseline + p_alt) / 2
+n = int(np.ceil(2*p_avg*(1-p_avg)*(za+zb)**2/(p_alt-p_baseline)**2))
+n_cuped = int(np.ceil(n * (1 - rho**2)))
+
+print(f"n per variant (raw)  : {n:,}")
+print(f"n per variant (CUPED): {n_cuped:,}")
+print(f"variance reduction   : {rho**2*100:.0f}%")
+
+# ── CUPED ADJUSTMENT ────────────────────
+def apply_cuped(Y_ctrl, Y_var, X_ctrl, X_var):
+    X_all = np.concatenate([X_ctrl, X_var])
+    Y_all = np.concatenate([Y_ctrl, Y_var])
+    theta = np.cov(Y_all, X_all)[0,1] / np.var(X_all)
+    mu = X_all.mean()
+    return (Y_ctrl - theta*(X_ctrl-mu),
+            Y_var  - theta*(X_var -mu),
+            1 - np.var(Y_ctrl-theta*(X_ctrl-mu))/np.var(Y_ctrl))
+
+# ── ANALYSIS ────────────────────────────
+def analyse(n_a,c_a,n_b,c_b):
+    pa, pb = c_a/n_a, c_b/n_b
+    pp = (c_a+c_b)/(n_a+n_b)
+    se = np.sqrt(pp*(1-pp)*(1/n_a+1/n_b))
+    z  = (pb-pa)/se
+    pv = 2*(1-stats.norm.cdf(abs(z)))
+    lift = (pb-pa)/pa*100
+    verdict = "SHIP" if pv<alpha and pb>pa else "KILL" if pv<alpha else "CONTINUE"
+    return dict(cvr_a=round(pa*100,3),cvr_b=round(pb*100,3),
+                lift=round(lift,2),p_value=round(pv,4),verdict=verdict)`;
+  window._scriptText=script;
+  const pyEl=document.getElementById('py-script');
+  pyEl.textContent=script;
+}
+
+function copyExport(){navigator.clipboard.writeText(window._exportText||'').then(()=>{const b=document.querySelector('#export-text .copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000)})}
+function copyScript(){navigator.clipboard.writeText(window._scriptText||'').then(()=>{const b=document.querySelector('#py-script+.copy-btn, .copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000)})}
+
+// ─── HISTORY ─────────────────────────────────────────────
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!history.length){el.innerHTML='<div style="font-size:11px;opacity:.5">No experiments yet.</div>';return}
+  el.innerHTML=history.map((h,i)=>`<div class="history-item" onclick="loadHistory(${i})"><div class="history-item-title">CVR ${(h.cvr*100).toFixed(1)}% | +${(h.liftRel*100).toFixed(0)}% lift</div><div class="history-item-sub">${h.weeks}wk raw | ${h.weeksCuped}wk CUPED | ${h.ts}</div></div>`).join('');
+}
+function loadHistory(i){
+  const h=history[i];
+  document.getElementById('cvr').value=h.cvr*100;
+  document.getElementById('traffic').value=h.traffic;
+  document.getElementById('lift').value=h.liftRel*100;
+  sl('lv',(h.liftRel*100)+'%');
+  run();
+}
+
+
+// ─── LIVE ANALYZER ───────────────────────────────────────
+function fillLive(na,ca,nb,cb){
+  document.getElementById('live-na').value=na;
+  document.getElementById('live-ca').value=ca;
+  document.getElementById('live-nb').value=nb;
+  document.getElementById('live-cb').value=cb;
+  liveUpdate();
+}
+
+function liveUpdate(){
+  const na=parseFloat(document.getElementById('live-na').value);
+  const ca=parseFloat(document.getElementById('live-ca').value);
+  const nb=parseFloat(document.getElementById('live-nb').value);
+  const cb=parseFloat(document.getElementById('live-cb').value);
+  if(!na||!ca||!nb||!cb||ca>na||cb>nb){
+    document.getElementById('live-results').style.display='none';
+    document.getElementById('live-empty').style.display='block';
+    return;
+  }
+  document.getElementById('live-results').style.display='block';
+  document.getElementById('live-empty').style.display='none';
+
+  const pa=ca/na, pb=cb/nb;
+  const pp=(ca+cb)/(na+nb);
+  const se=Math.sqrt(pp*(1-pp)*(1/na+1/nb));
+  const z=se>0?(pb-pa)/se:0;
+  const pval=2*(1-normCDF(Math.abs(z)));
+  const lift=(pb-pa)/pa*100;
+
+  // SRM
+  const srmChi2=Math.pow(na-nb,2)/(na+nb);
+  const srmP=1-normCDF(Math.sqrt(srmChi2)*Math.sqrt(2));
+  const srmOk=srmP>0.01;
+
+  // Bayesian
+  const ns=Math.min(Math.round((na+nb)/2),3000);
+  const c1=Math.round(pa*ns),c2=Math.round(pb*ns);
+  const bprob=betaProb(1+c1,1+(ns-c1),1+c2,1+(ns-c2),8000);
+
+  // Progress toward target n
+  const targetN=lastResult?lastResult.nCuped:na;
+  const pctDone=Math.min(100,Math.round((Math.min(na,nb)/targetN)*100));
+  const alpha=lastResult?lastResult.alpha:0.05;
+
+  document.getElementById('lv-cvra').textContent=(pa*100).toFixed(2)+'%';
+  document.getElementById('lv-cvrb').textContent=(pb*100).toFixed(2)+'%';
+  document.getElementById('lv-lift').textContent=(lift>=0?'+':'')+lift.toFixed(1)+'%';
+  document.getElementById('lv-lift').style.color=lift>0?'var(--green)':'var(--red)';
+  document.getElementById('lv-pval').textContent=pval<0.001?'<0.001':pval.toFixed(3);
+  document.getElementById('lv-bprob').textContent=Math.round(bprob*100)+'%';
+  document.getElementById('lv-pct').textContent=pctDone+'%';
+  document.getElementById('lv-srm').textContent=srmOk?'OK':'FAIL';
+  document.getElementById('lv-srm').style.color=srmOk?'var(--green)':'var(--red)';
+
+  // Verdict
+  const vd=document.getElementById('live-verdict');
+  const vt=document.getElementById('live-verdict-title');
+  const vb=document.getElementById('live-verdict-body');
+  const vtag=document.getElementById('live-verdict-tag');
+
+  if(!srmOk){
+    vd.style.background='var(--red-bg)';vd.style.borderColor='var(--red-border)';
+    vtag.style.color='var(--red)';vtag.textContent='SRM DETECTED - STOP';
+    vt.textContent='Your traffic split is broken. Do not interpret these results.';
+    vb.textContent=`Control has ${fmt(na)} users, variant has ${fmt(nb)} - the imbalance is statistically significant (p=${srmP.toFixed(3)}). Something upstream is wrong: check your bucketing logic, redirect handling, or bot filtering. Fix this before collecting more data.`;
+  } else if(pval<alpha&&pb>pa){
+    vd.style.background='var(--green-bg)';vd.style.borderColor='var(--green-border)';
+    vtag.style.color='var(--green)';vtag.textContent='SIGNIFICANT - VARIANT WINS';
+    vt.textContent=`+${lift.toFixed(1)}% lift. p=${pval.toFixed(3)}. Bayesian: ${Math.round(bprob*100)}% probability B wins.`;
+    vb.textContent=pctDone>=80?`You've collected ${pctDone}% of target sample. Result is stable - safe to ship if guardrail metrics are clean.`:`Only ${pctDone}% of target sample collected. Result is significant but consider running to full sample to confirm stability, especially if this is a high-stakes decision.`;
+  } else if(pval<alpha&&pb<pa){
+    vd.style.background='var(--red-bg)';vd.style.borderColor='var(--red-border)';
+    vtag.style.color='var(--red)';vtag.textContent='SIGNIFICANT - VARIANT HURTS';
+    vt.textContent=`${lift.toFixed(1)}% lift. p=${pval.toFixed(3)}. Variant is performing worse.`;
+    vb.textContent='Kill the variant. Do not ship. Document the result — negative findings are valuable signal about what your users do not want.';
+  } else if(pctDone>=100){
+    vd.style.background='var(--amber-bg)';vd.style.borderColor='var(--amber-border)';
+    vtag.style.color='var(--amber)';vtag.textContent='FULL SAMPLE - INCONCLUSIVE';
+    vt.textContent=`p=${pval.toFixed(3)}. You've hit target sample size but no significant result.`;
+    vb.textContent=`The effect is likely smaller than your pre-registered MDE of ${lastResult?(lastResult.liftRel*100).toFixed(0)+'%':'your target'}. Options: (1) call it null and move on, (2) run a follow-up with a smaller MDE if the business case justifies longer runtime.`;
+  } else {
+    vd.style.background='var(--surface2)';vd.style.borderColor='var(--border)';
+    vtag.style.color='var(--ink3)';vtag.textContent='IN PROGRESS';
+    vt.textContent=`${pctDone}% of target sample. Too early to call.`;
+    vb.textContent=`Current p=${pval.toFixed(3)} - ${pval<alpha?'trending significant':'not significant yet'}. Do not make a ship/kill decision yet. Peeking and stopping early would inflate your false positive rate. Check back at ${100-pctDone}% more data collected.`;
+  }
+
+  setTimeout(()=>drawLiveChart(na,ca,nb,cb,pval,alpha),100);
+}
+
+function drawLiveChart(na,ca,nb,cb,pval,alpha){
+  const c=document.getElementById('liveCanvas');
+  const W=c.offsetWidth||700,H=120;
+  c.width=W*devicePixelRatio;c.height=H*devicePixelRatio;
+  c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const pa=ca/na,pb=cb/nb;
+  const pL=8,pR=8,pT=24,pB=32,cW=W-pL-pR,cH=H-pT-pB;
+  const bars=[
+    {label:'Control CVR',val:pa,color:'#ccc8bc'},
+    {label:'Variant CVR',val:pb,color:pb>pa?'#2d6a4f':'#c0392b'},
+  ];
+  const maxV=Math.max(pa,pb)*1.4;
+  bars.forEach((b,i)=>{
+    const bw=cW/3,x=pL+(i*(cW/2.5))+(cW/8);
+    const bh=(b.val/maxV)*cH;
+    const y=pT+cH-bh;
+    ctx.fillStyle=b.color;
+    ctx.beginPath();
+    ctx.roundRect?ctx.roundRect(x,y,bw,bh,3):ctx.rect(x,y,bw,bh);
+    ctx.fill();
+    ctx.fillStyle='var(--ink)';ctx.font=`bold 11px 'IBM Plex Mono',monospace`;ctx.textAlign='center';
+    ctx.fillStyle='#1a1814';
+    ctx.fillText((b.val*100).toFixed(2)+'%',x+bw/2,y-6);
+    ctx.fillStyle='#9c9890';ctx.font=`10px 'IBM Plex Mono',monospace`;
+    ctx.fillText(b.label,x+bw/2,pT+cH+18);
+  });
+  // p-value indicator
+  ctx.fillStyle=pval<alpha?'#2d6a4f':'#9c9890';
+  ctx.font=`11px 'IBM Plex Mono',monospace`;ctx.textAlign='right';
+  ctx.fillText('p='+pval.toFixed(3)+' '+(pval<alpha?'(significant)':'(not yet significant)'),pL+cW,pT+cH+18);
+}
+
+// ─── SEGMENTS ────────────────────────────────────────────
+let segments=[
+  {name:'Mobile',traffic:3000,cvr:4.0},
+  {name:'Desktop',traffic:4000,cvr:6.5},
+  {name:'New users',traffic:2000,cvr:2.5},
+];
+
+function renderSegmentInputs(){
+  const el=document.getElementById('seg-rows');
+  el.innerHTML='';
+  segments.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 32px;gap:8px;align-items:end';
+    d.innerHTML=`
+      <div class="field" style="margin:0"><label>Segment name</label><input type="text" value="${s.name}" oninput="segments[${i}].name=this.value;calcSegments()" /></div>
+      <div class="field" style="margin:0"><label>Traffic/week</label><input type="number" value="${s.traffic}" min="100" oninput="segments[${i}].traffic=parseFloat(this.value)||0;calcSegments()" /></div>
+      <div class="field" style="margin:0"><label>Baseline CVR (%)</label><input type="number" value="${s.cvr}" step="0.1" min="0.1" max="99" oninput="segments[${i}].cvr=parseFloat(this.value)||0;calcSegments()" /></div>
+      <button onclick="removeSegment(${i})" style="background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);border-radius:4px;cursor:pointer;font-size:14px;padding:8px 0;height:36px">x</button>`;
+    el.appendChild(d);
+  });
+  calcSegments();
+}
+
+function addSegment(){
+  segments.push({name:'Segment '+(segments.length+1),traffic:2000,cvr:5.0});
+  renderSegmentInputs();
+}
+
+function removeSegment(i){
+  segments.splice(i,1);
+  renderSegmentInputs();
+}
+
+function calcSegments(){
+  if(!lastResult)return;
+  const {liftRel,alpha}=lastResult;
+  const tbody=document.getElementById('seg-tbody');
+  tbody.innerHTML='';
+  let insights=[];
+  segments.forEach(s=>{
+    if(!s.traffic||!s.cvr)return;
+    const p1=s.cvr/100,p2=p1*(1+liftRel);
+    const n=calcN(p1,p2,alpha,0.8);
+    const weeks=Math.ceil(n/s.traffic);
+    const powered=weeks<=5;
+    const status=weeks<=2?{cls:'badge-green',txt:'Well powered'}:weeks<=5?{cls:'badge-amber',txt:'Marginal'}:{cls:'badge-red',txt:'Underpowered'};
+    tbody.innerHTML+=`<tr>
+      <td style="font-weight:500">${s.name}</td>
+      <td>${fmt(s.traffic)}</td>
+      <td>${s.cvr.toFixed(1)}%</td>
+      <td>${fmt(n)}</td>
+      <td>${weeks}w</td>
+      <td><span class="badge ${status.cls}">${status.txt}</span></td>
+    </tr>`;
+    if(!powered) insights.push(`${s.name} needs ${weeks} weeks - consider pooling with a similar segment or accepting a higher MDE for this cohort.`);
+  });
+  document.getElementById('seg-results-card').style.display='block';
+  const maxW=Math.max(...segments.filter(s=>s.traffic&&s.cvr).map(s=>{
+    const p1=s.cvr/100,p2=p1*(1+liftRel);
+    return Math.ceil(calcN(p1,p2,alpha,0.8)/s.traffic);
+  }));
+  const insight=insights.length?insights.join(' ')+` Run time is bottlenecked by your slowest segment at ${maxW} weeks.`:`All segments are powered within 5 weeks. Your experiment can run on the full population with confidence that segment-level analysis will be reliable.`;
+  document.getElementById('seg-insight').textContent=insight;
+}
+
+// ─── DIGEST ──────────────────────────────────────────────
+let digestChannel='slack';
+
+function setDigestChannel(ch){
+  digestChannel=ch;
+  ['slack','email','notion'].forEach(c=>{
+    const btn=document.getElementById('dc-'+c);
+    btn.style.background=c===ch?'var(--ink)':'var(--surface2)';
+    btn.style.color=c===ch?'#fff':'var(--ink2)';
+    btn.style.border=c===ch?'none':'1px solid var(--border)';
+  });
+  document.getElementById('digest-channel').textContent=ch.charAt(0).toUpperCase()+ch.slice(1);
+  genDigest();
+}
+
+function fillDigest(name,week,na,ca,nb,cb){
+  document.getElementById('dg-name').value=name;
+  document.getElementById('dg-week').value=week;
+  document.getElementById('dg-na').value=na;
+  document.getElementById('dg-ca').value=ca;
+  document.getElementById('dg-nb').value=nb;
+  document.getElementById('dg-cb').value=cb;
+  genDigest();
+}
+
+function genDigest(){
+  const name=document.getElementById('dg-name').value||'Experiment';
+  const week=parseInt(document.getElementById('dg-week').value)||1;
+  const na=parseFloat(document.getElementById('dg-na').value);
+  const ca=parseFloat(document.getElementById('dg-ca').value);
+  const nb=parseFloat(document.getElementById('dg-nb').value);
+  const cb=parseFloat(document.getElementById('dg-cb').value);
+  if(!na||!ca||!nb||!cb)return;
+
+  const pa=ca/na,pb=cb/nb;
+  const pp=(ca+cb)/(na+nb);
+  const se=Math.sqrt(pp*(1-pp)*(1/na+1/nb));
+  const z=se>0?(pb-pa)/se:0;
+  const pval=2*(1-normCDF(Math.abs(z)));
+  const lift=(pb-pa)/pa*100;
+  const alpha=lastResult?lastResult.alpha:0.05;
+  const targetN=lastResult?lastResult.nCuped:na;
+  const totalWeeks=lastResult?lastResult.weeksCuped:4;
+  const pctDone=Math.min(100,Math.round((Math.min(na,nb)/targetN)*100));
+  const sig=pval<alpha;
+  const ns=Math.min(Math.round((na+nb)/2),3000);
+  const c1=Math.round(pa*ns),c2=Math.round(pb*ns);
+  const bprob=Math.round(betaProb(1+c1,1+(ns-c1),1+c2,1+(ns-c2),6000)*100);
+  const status=sig&&pb>pa?'WINNING':sig&&pb<pa?'LOSING':pctDone>=100?'INCONCLUSIVE':'IN PROGRESS';
+
+  let text='';
+  if(digestChannel==='slack'){
+    text=`*[${name}] Week ${week} update*\n\n`+
+    `*Status:* ${status}\n`+
+    `*Progress:* ${pctDone}% of target sample (Week ${week} of ${totalWeeks})\n\n`+
+    `*Results*\n`+
+    `Control CVR:  ${(pa*100).toFixed(2)}%  (${fmt(na)} users, ${fmt(ca)} conversions)\n`+
+    `Variant CVR:  ${(pb*100).toFixed(2)}%  (${fmt(nb)} users, ${fmt(cb)} conversions)\n`+
+    `Observed lift: ${lift>=0?'+':''}${lift.toFixed(1)}%\n`+
+    `p-value: ${pval<0.001?'<0.001':pval.toFixed(3)}  |  Bayesian: ${bprob}% probability B wins\n\n`+
+    `*Recommendation*\n`+
+    (sig&&pb>pa?`Variant is winning. ${pctDone>=80?'Safe to ship pending guardrail review.':'Consider running to full sample before shipping.'}`
+    :sig&&pb<pa?'Variant is hurting. Recommend killing - do not ship.'
+    :pctDone>=100?'Full sample reached, no significant result. Calling null - moving on.'
+    :`Too early to call. No decision until Week ${totalWeeks}.`)+
+    `\n\n_Generated by Experi_`;
+  } else if(digestChannel==='email'){
+    text=`Subject: [${name}] Week ${week} Experiment Update\n\n`+
+    `Hi team,\n\n`+
+    `Here's the Week ${week} update for the ${name}.\n\n`+
+    `STATUS: ${status} (${pctDone}% of target sample)\n\n`+
+    `RESULTS\n`+
+    `Control:  ${(pa*100).toFixed(2)}% CVR  (n=${fmt(na)}, ${fmt(ca)} conversions)\n`+
+    `Variant:  ${(pb*100).toFixed(2)}% CVR  (n=${fmt(nb)}, ${fmt(cb)} conversions)\n`+
+    `Lift:     ${lift>=0?'+':''}${lift.toFixed(1)}% relative\n`+
+    `p-value:  ${pval<0.001?'<0.001':pval.toFixed(3)}\n`+
+    `Bayesian: ${bprob}% probability variant B is better\n\n`+
+    `RECOMMENDATION\n`+
+    (sig&&pb>pa?`The variant is statistically significant. ${pctDone>=80?'Recommend shipping pending guardrail metric review.':'Suggest running to full sample for confidence.'}`
+    :sig&&pb<pa?'The variant is significantly worse than control. Recommend killing immediately.'
+    :pctDone>=100?'We have reached full sample size with no significant result. Calling this null.'
+    :`It is too early to make a decision. Next update at Week ${week+1}.`)+
+    `\n\nNext steps: ${sig?'Guardrail review, then ship/kill decision.':'Continue running. No peeking.'}\n\n`+
+    `Best,\n[Your name]\n\n---\nGenerated by Experi`;
+  } else {
+    text=`# ${name} - Week ${week} Update\n\n`+
+    `**Status:** ${status}\n`+
+    `**Progress:** ${pctDone}% of target sample\n`+
+    `**Planned end:** Week ${totalWeeks}\n\n`+
+    `## Results\n\n`+
+    `| Variant | Visitors | Conversions | CVR |\n`+
+    `|---------|----------|-------------|-----|\n`+
+    `| Control | ${fmt(na)} | ${fmt(ca)} | ${(pa*100).toFixed(2)}% |\n`+
+    `| Variant | ${fmt(nb)} | ${fmt(cb)} | ${(pb*100).toFixed(2)}% |\n\n`+
+    `**Observed lift:** ${lift>=0?'+':''}${lift.toFixed(1)}%\n`+
+    `**p-value:** ${pval<0.001?'<0.001':pval.toFixed(3)}\n`+
+    `**Bayesian probability B wins:** ${bprob}%\n\n`+
+    `## Recommendation\n\n`+
+    (sig&&pb>pa?`Variant is winning. ${pctDone>=80?'Recommend shipping after guardrail review.':'Run to full sample first.'}`
+    :sig&&pb<pa?'Variant is hurting. Kill it.'
+    :pctDone>=100?'Full sample, no significant result. Calling null.'
+    :`Keep running. Decision at Week ${totalWeeks}.`)+
+    `\n\n---\n*Generated by Experi*`;
+  }
+
+  document.getElementById('digest-output-card').style.display='block';
+  document.getElementById('digest-text').textContent=text;
+  window._digestText=text;
+}
+
+function copyDigest(){
+  navigator.clipboard.writeText(window._digestText||'').then(()=>{
+    const b=document.querySelector('#digest-output-card .copy-btn');
+    b.textContent='Copied';setTimeout(()=>b.textContent='Copy',2000);
+  });
+}
+
+// Dark mode toggle
+let isDark = false;
+function toggleDark(){
+  isDark = !isDark;
+  document.documentElement.classList.toggle('dark', isDark);
+  document.getElementById('theme-icon').textContent = isDark ? '●' : '○';
+  document.getElementById('theme-label').textContent = isDark ? 'Light mode' : 'Dark mode';
+  // Re-render canvases since they use hardcoded colors
+  if(lastResult){
+    setTimeout(()=>{
+      drawPowerCurve(lastResult);
+      drawCupedChart(lastResult);
+      drawSeqChart(lastResult);
+      drawGrowthChart(lastResult);
+      if(document.getElementById('liveCanvas').offsetWidth > 0){
+        const na=parseFloat(document.getElementById('live-na').value);
+        if(na) liveUpdate();
+      }
+    }, 50);
+  }
+}
+
+// init segments on load
+window.addEventListener('load',()=>{renderSegmentInputs();run();});
+
+</script>
+</body>
+</html>
