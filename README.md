@@ -2,7 +2,7 @@
 
 Free A/B experiment design tool, now rebuilt on Databricks.
 
-Live demo (Databricks version): https://huggingface.co/spaces/Theshlok13/experi
+Live demo: https://theshlok13-experi.hf.space
 
 Original frontend: https://tryexperi.netlify.app
 
@@ -10,17 +10,14 @@ Original frontend: https://tryexperi.netlify.app
 
 - Sample size and runtime calculator
 - CUPED variance reduction (saves 30-40% of users)
-- Bayesian probability alongside frequentist p-values
-- Sequential testing with O'Brien-Fleming boundaries
-- SRM detection before you interpret results
-- Live experiment analyzer — paste mid-run data, get a verdict
+- Bayesian inference: P(Treatment > Control) instead of p-values
 - Posterior distribution visualization
-- Full experiment logging with MLflow — every run tracked, versioned, auditable
+- Full experiment logging with MLflow: Every run tracked, versioned, auditable
 - Results persisted to Delta Lake with full lineage
 
 ## What changed in v2
 
-The original version ran entirely in the browser. Experiment results lived in browser state with no lineage, no governance, and no way to reproduce an analysis six months later. The Databricks rebuild fixes that — every experiment is logged to MLflow, results are stored in Delta Lake, and the full pipeline is reproducible from raw events.
+The original version ran entirely in the browser. Experiment results lived in browser state with no lineage, no governance, and no way to reproduce an analysis six months later. The Databricks rebuild fixes that. Every experiment is logged to MLflow, results are stored in Delta Lake, and the full pipeline is reproducible from raw events.
 
 ## Files
 
