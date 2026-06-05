@@ -1,6 +1,6 @@
 # Experi
 
-Free A/B experiment design tool — now rebuilt on Databricks.
+Free A/B experiment design tool, now rebuilt on Databricks.
 
 Live demo (Databricks version): https://huggingface.co/spaces/Theshlok13/experi
 
