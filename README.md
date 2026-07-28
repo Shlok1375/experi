@@ -2,7 +2,7 @@
 
 Free A/B experiment design tool, now rebuilt on Databricks.
 
-Live demo: https://theshlok13-experi.hf.space
+Live demo: https://theshlok13-experi.hf.space/
 
 Original frontend: https://tryexperi.netlify.app
 
