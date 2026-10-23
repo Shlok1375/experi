@@ -472,7 +472,7 @@ tr:hover td{background:var(--surface2)}
       <div class="card">
         <div class="card-title">Sequential testing <span class="badge badge-amber">Prevents early-stopping bias</span></div>
         <div style="font-size:12px;color:var(--ink2);line-height:1.8;margin-bottom:16px">
-          Peeking at experiment results before the planned end date and stopping early inflates your false positive rate - often to 20-30% when you think it's 5%. Sequential testing sets an always-valid confidence boundary that you can check at any time without penalty.
+          Peeking at experiment results before the planned end date and stopping early inflates your false positive rate - often to 20-30% when you think it's 5%. Sequential testing sets a stricter boundary at early looks (O'Brien-Fleming), so you can check results at planned points without inflating your false positive rate.
         </div>
         <div class="seq-grid">
           <div class="seq-cell"><div class="seq-val" id="sq-alpha">—</div><div class="seq-label">Nominal alpha</div></div>
@@ -483,20 +483,20 @@ tr:hover td{background:var(--surface2)}
       </div>
 
       <div class="card">
-        <div class="card-title">mSPRT implementation</div>
+        <div class="card-title">O'Brien-Fleming boundary implementation</div>
         <div class="code-block">
-          <pre style="white-space:pre;font-family:var(--fm);font-size:11px;line-height:1.8;margin:0;color:#c8d8b0"><span style="color:#556655"># mixture Sequential Probability Ratio Test</span>
+          <pre style="white-space:pre;font-family:var(--fm);font-size:11px;line-height:1.8;margin:0;color:#c8d8b0"><span style="color:#556655"># Group sequential test with O'Brien-Fleming-style boundaries</span>
 <span style="color:#7ec8a0">import</span> numpy <span style="color:#7ec8a0">as</span> np
 
-<span style="color:#7ec8a0">def</span> <span style="color:#e8e4d8">msprt_boundary</span>(alpha, n_max, n_current):
-  <span style="color:#556655"># O'Brien-Fleming spending function</span>
+<span style="color:#7ec8a0">def</span> <span style="color:#e8e4d8">obf_boundary</span>(alpha, n_max, n_current):
+  <span style="color:#556655"># Boundary shrinks as more of the planned sample is observed</span>
   info_frac = n_current / n_max
   z_boundary = <span style="color:#e8e4d8">ppf</span>(1 - alpha/2) / np.<span style="color:#e8e4d8">sqrt</span>(info_frac)
   <span style="color:#7ec8a0">return</span> z_boundary
 
 <span style="color:#556655"># Check at each peek</span>
 z_obs = (p_b - p_a) / se
-z_bound = <span style="color:#e8e4d8">msprt_boundary</span>(0.05, n_max=n_target, n_current=n_so_far)
+z_bound = <span style="color:#e8e4d8">obf_boundary</span>(0.05, n_max=n_target, n_current=n_so_far)
 <span style="color:#7ec8a0">if</span> abs(z_obs) > z_bound:
   <span style="color:#e8e4d8">print</span>(<span style="color:#98d896">"Safe to stop - significance reached"</span>)</pre>
         </div>
@@ -1203,7 +1203,7 @@ function renderTimeline(r){
     {s:'warn',t:'SRM check: set up pre-launch',b:'Run a 24h 50/50 hold-out. Chi-squared p<0.01 on your traffic split = experiment invalid. Full stop.'},
     {s:'ok',t:'Guardrail metrics defined',b:'Identify 2-3 metrics that must not regress. These are automatic kill switches - non-negotiable.'},
     {s:r.varRed>.15?'ok':'warn',t:`CUPED reduces variance ${(r.varRed*100).toFixed(0)}%`,b:`At rho=${r.rho.toFixed(2)}, CUPED saves ${fmt(r.usersSaved)} users and ${r.weeksSaved} week${r.weeksSaved!==1?'s':''}.`},
-    {s:'ok',t:'No-peek policy enforced',b:`Set a hard calendar stop for Week ${r.weeksCuped}. If you must peek, implement mSPRT sequential testing first.`},
+    {s:'ok',t:'No-peek policy enforced',b:`Set a hard calendar stop for Week ${r.weeksCuped}. If you must peek, use a sequential test with O'Brien-Fleming boundaries first.`},
   ];
   const chEl=document.getElementById('checklist');
   chEl.innerHTML='';
