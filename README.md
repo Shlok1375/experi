@@ -1,34 +1,46 @@
 # Experi
 
-Free A/B experiment design tool, now rebuilt on Databricks.
+A/B experiment analysis with CUPED variance reduction and Bayesian inference, rebuilt as a governed pipeline on Databricks.
 
-Live demo: https://theshlok13-experi.hf.space/
+- **Pipeline (v3):** [`experi_pipeline_v3.ipynb`](experi_pipeline_v3.ipynb)
+- **Live demo:** https://theshlok13-experi.hf.space/ — runs the same CUPED + Bayesian analysis interactively (no Databricks account needed)
+- **Original frontend (v1):** https://tryexperi.netlify.app
 
-Original frontend: https://tryexperi.netlify.app
+## What the v3 pipeline does
 
-## What it does
+1. Writes raw product events (visits, purchases) to a Unity Catalog Delta table
+2. Reads pre-experiment covariates from the Delta version that existed at experiment launch (**time travel**), so late-arriving data can't change results
+3. Computes per-user covariates and outcomes in **Spark**
+4. Applies **CUPED** variance reduction
+5. Runs **Bayesian inference**: Beta-Binomial on raw conversion, Normal posterior on the CUPED-adjusted outcome
+6. Logs parameters, Delta versions, and metrics to **MLflow**
+7. Writes results to Unity Catalog, with lineage `raw_events → user_metrics → experiment_results`
 
-- Sample size and runtime calculator
-- CUPED variance reduction (saves 30-40% of users)
-- Bayesian inference: P(Treatment > Control) instead of p-values
-- Posterior distribution visualization
-- Full experiment logging with MLflow: Every run tracked, versioned, auditable
-- Results persisted to Delta Lake with full lineage
+## Results (simulated data, 20,000 users)
 
-## What changed in v2
+| | |
+|---|---|
+| Pre-period purchases at launch snapshot vs. latest version | 10,724 vs. 11,046 (a late backfill; pinning keeps results reproducible) |
+| CUPED variance reduction | 5.5% (matches theory: corr² = 5.5%) |
+| P(treatment > control) | > 0.999 |
+| Lift | +2.4 pts absolute (+12.0% relative) |
+| Decision | SHIP |
 
-The original version ran entirely in the browser. Experiment results lived in browser state with no lineage, no governance, and no way to reproduce an analysis six months later. The Databricks rebuild fixes that. Every experiment is logged to MLflow, results are stored in Delta Lake, and the full pipeline is reproducible from raw events.
+CUPED's benefit depends on how well pre-experiment behavior predicts the outcome. Here the correlation is 0.235, so the reduction is modest.
 
-## Files
+## Versions
 
-- `experi_pipeline.ipynb` — Databricks pipeline with Delta Lake, MLflow, and Bayesian inference
-- `index.html` — original browser-based frontend (v1)
+- **v1:** Browser-based tool (HTML/CSS/JS). Sound statistics, but results lived in browser state with no lineage or reproducibility.
+- **v2:** First Databricks rebuild ([`experi_pipeline.ipynb`](experi_pipeline.ipynb)). Added MLflow logging and Delta output, on simulated pandas data.
+- **v3:** Governed pipeline. Raw events in Delta, time-travel reads, Spark processing, Unity Catalog lineage. Also corrects v2's inference: CUPED-adjusted values aren't 0/1, so they're now modeled with a Normal posterior instead of a Beta.
 
 ## Stack
 
-v1: Vanilla HTML, CSS, JavaScript. No dependencies. Single file.
+Databricks, Delta Lake, Unity Catalog, MLflow 3.0, PySpark, Python. Demo: Gradio on Hugging Face Spaces.
 
-v2: Databricks, Delta Lake, MLflow 3.0, Gradio, Python
+## Run it
+
+Import `experi_pipeline_v3.ipynb` into Databricks (Free Edition works), attach Serverless compute, and click **Run all**. Change `CATALOG` in the config cell if yours isn't `workspace`.
 
 ## Background
 
