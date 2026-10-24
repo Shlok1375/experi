@@ -44,7 +44,7 @@ Import `experi_pipeline_v3.ipynb` into Databricks (Free Edition works), attach S
 
 ## Stack
 
-Databricks, Delta Lake, Unity Catalog, MLflow 3.0, PySpark, Python. The demo uses Gradio on Hugging Face Spaces.
+Databricks, Delta Lake, Unity Catalog, MLflow 3, PySpark, Python. The demo uses Gradio on Hugging Face Spaces.
 
 ## Background
 
